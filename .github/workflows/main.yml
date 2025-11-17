@@ -7,6 +7,67 @@ on:
   [workflow_dispatch, pull_request]
 
 jobs:
+  build-test:
+    # With this version, the package sources need to be updated to install openssl 3.4.x
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install dependencies
+        # After installing the dependencies we update the package source to install openssl 3.4.x
+        run: |
+          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git strace curl unzip
+          sudo sed -i -e 's/noble/plucky/g' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update && sudo apt-get -y install openssl ca-certificates
+      - name: Checkout gta-api-core
+        uses: actions/checkout@v4
+        with:
+          repository: 'generic-trust-anchor-api/gta-api-core'
+          ref: 'main'
+      - name: Build and install gta-api-core
+        run: |
+          meson setup build
+          sudo ninja -C build install
+      - name: Checkout gta-api-sw-provider
+        uses: actions/checkout@v4
+        with:
+          repository: 'generic-trust-anchor-api/gta-api-sw-provider'
+          ref: 'main'
+      - name: Build and install gta-api-sw-provider
+        run: |
+          meson setup build
+          sudo ninja -C build install
+      - name: Checkout gta-cli
+        uses: actions/checkout@v4
+        with:
+          repository: 'generic-trust-anchor-api/gta-cli'
+          ref: 'main'
+      - name: Build and install gta-cli
+        run: |
+          meson setup build
+          sudo ninja -C build install
+      - name: Checkout gta-api-for-openssl
+        uses: actions/checkout@v4
+      - name: Download gta-api-sw-provider merged static library
+        env:
+          AUTH_SERVICE_PAT: ${{ secrets.AUTH_SERVICE_PAT }}
+        run: |
+          ARTIFACT_ID=$(curl -H "Authorization: token $AUTH_SERVICE_PAT" \
+            https://api.github.com/repos/generic-trust-anchor-api/gta-api-sw-provider/actions/artifacts \
+            | jq -r '.artifacts[] | select(.name=="libgta_sw_provider_merged.a") | .id' | head -n 1)
+          curl -H "Authorization: token $AUTH_SERVICE_PAT" \
+               -L "https://api.github.com/repos/generic-trust-anchor-api/gta-api-sw-provider/actions/artifacts/$ARTIFACT_ID/zip" \
+               -o deps/gta_api/lib_latest/libgta_sw_provider_merged.zip
+          unzip deps/gta_api/lib_latest/libgta_sw_provider_merged.zip -d deps/gta_api/lib_latest
+      - name: Build and install gta-api-for-openssl
+        run: |
+          make
+          sudo make install
+          sudo ldconfig
+      - name: Test gta-api-for-openssl
+        env:
+          TERM: xterm
+        run: |
+          make test
+
   style-check:
     runs-on: ubuntu-latest
     steps:
