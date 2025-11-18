@@ -39,7 +39,7 @@ extern "C" {
 #define GTA_KEY_TYPE_ATTRIBUTE "com.github.generic-trust-anchor-api.keytype.openssl"
 
 #define PUB_KEY_BEGIN_TAG "-----BEGIN PUBLIC KEY-----\n"
-#define PUB_KEY_END_TAG "\n-----END PUBLIC KEY-----\n";
+#define PUB_KEY_END_TAG "\n-----END PUBLIC KEY-----\n"
 
 #ifdef __cplusplus
 }
