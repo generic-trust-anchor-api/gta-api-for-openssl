@@ -94,6 +94,7 @@ int gtaossl_provider_base_signature_digest_init(
         LOG_TRACE_ARG("pkey->personality_name: %s", pkey->personality_name);
     } else {
         LOG_WARN("No pkey!");
+        return NOK;
     }
 
     /* We currently only do the signature calculation */
@@ -167,6 +168,7 @@ int gtaossl_provider_base_signature_digest_verify_init(
         LOG_TRACE_ARG("pkey->personality_name: %s", pkey->personality_name);
     } else {
         LOG_WARN("No pkey!");
+        return NOK;
     }
 
     /* We currently only do the signature calculation */

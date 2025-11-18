@@ -307,6 +307,7 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
 
         if (pkey2->provctx == NULL) {
             LOG_WARN("No context in keydata2");
+            return NOK;
         } else {
             LOG_TRACE("We have a context in keydata2");
         }

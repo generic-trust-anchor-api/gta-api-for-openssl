@@ -609,10 +609,12 @@ int OSSL_provider_init(
 
     if (c_obj_create == NULL) {
         LOG_ERROR("OSS Create object function not initialized");
+        return NOK;
     }
 
     if (c_obj_add_sigid == NULL) {
         LOG_ERROR("OSS Add sig ID function not initialized");
+        return NOK;
     }
 
     /* The next for cycle can fix the following error:

@@ -269,13 +269,13 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
         gta_errinfo_t errinfo = 0;
 
         LOG_TRACE("GTA context open");
-        LOG_TRACE_ARG("kctx->status = %d", kctx->status);
-
         LOG_TRACE("Check input parameters");
         if (kctx == NULL) {
             LOG_WARN("kctx is NULL");
             return NOK;
         }
+
+        LOG_TRACE_ARG("kctx->status = %d", kctx->status);
 
         if (kctx->h_inst == NULL) {
             LOG_WARN("kctx->h_inst is NULL");
