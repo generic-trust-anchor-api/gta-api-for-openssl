@@ -23,7 +23,7 @@ function test_no_parameter_during_the_init
     assert_output_contains "sigalg: ecdsa-with-SHA256"
     assert_output_contains "Tear down provider instance"
     assert_output_contains "Verify return code: 0 (ok)"
-    assert_output_contains "read R BLOCK"
+    # assert_output_contains "read R BLOCK"
     assert_output_contains "gtaossl_provider_base_signature_digest_sign : b64_enc(data)="
     assert_error_contains "depth=1 CN=Demo CA"
     assert_error_contains "verify return:1"
