@@ -107,7 +107,7 @@ void gtaossl_provider_base_keymgmt_free(void * keydata)
 int gtaossl_provider_base_keymgmt_set_params(void * keydata, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    const OSSL_PARAM * p;
+    const OSSL_PARAM * p = NULL;
 
     if (params == NULL) {
         LOG_WARN_ARG("%s -> return 1", __func__);
@@ -173,7 +173,7 @@ int gtaossl_provider_base_keymgmt_import(void * keydata, int selection, const OS
     LOG_INFO("Key manager imports key object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("%s selection: %d", __func__, selection);
-    const OSSL_PARAM * p;
+    const OSSL_PARAM * p = NULL;
 
     GTA_PKEY * pkey = (GTA_PKEY *)keydata;
 

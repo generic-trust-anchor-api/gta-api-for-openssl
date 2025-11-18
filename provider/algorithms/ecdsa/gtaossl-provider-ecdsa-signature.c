@@ -153,7 +153,7 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
-    OSSL_PARAM * p;
+    OSSL_PARAM * p = NULL;
 
     if (params == NULL) {
         LOG_DEBUG("There are no parameters");
@@ -164,8 +164,8 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
     p = OSSL_PARAM_locate(params, OSSL_SIGNATURE_PARAM_ALGORITHM_ID);
     if (p != NULL) {
         unsigned char * aid = NULL;
-        int aid_len;
-        int r;
+        int aid_len = 0;
+        int r = 0;
 
         ASN1_OBJECT * oid = OBJ_nid2obj(NID_ecdsa_with_SHA256);
         X509_ALGOR * x509_algor;

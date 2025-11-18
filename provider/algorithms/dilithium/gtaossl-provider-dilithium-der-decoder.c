@@ -103,7 +103,7 @@ static int gtaossl_provider_dilithium_der2key_decode(
     char * pem_name = NULL;
     char * pem_header = NULL;
     unsigned char * der_data = NULL;
-    long der_len;
+    long der_len = 0;
 
     GTA_DER_DECODER_CTX * dctx = (GTA_DER_DECODER_CTX *)vctx;
 
@@ -299,7 +299,7 @@ int ossl_read_der(GTA_PROVIDER_CTX * provctx, OSSL_CORE_BIO * cin, unsigned char
 
     BUF_MEM * mem = NULL;
     BIO * in = BIO_new_from_core_bio(provctx->libctx, cin);
-    int ok;
+    int ok = NOK;
 
     if (in == NULL)
         return 0;
@@ -324,18 +324,20 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
-    BUF_MEM * b;
-    unsigned char * p;
-    int i;
+    BUF_MEM * b = NULL;
+    unsigned char * p = NULL;
+    int i = 0;
     size_t want = HEADER_SIZE;
     uint32_t eos = 0;
     size_t off = 0;
     size_t len = 0;
-    size_t diff;
+    size_t diff = 0;
 
-    const unsigned char * q;
-    long slen;
-    int inf, tag, xclass;
+    const unsigned char * q = NULL;
+    long slen = 0;
+    int inf = 0;
+    int tag = 0;
+    int xclass = 0;
 
     b = BUF_MEM_new();
     if (b == NULL) {

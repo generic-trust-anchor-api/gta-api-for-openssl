@@ -112,8 +112,8 @@ static int gtaossl_provider_base_pem_decoder_decode(
     char * pem_header = NULL;
     unsigned char * der_data = NULL;
     long der_len = 0;
-    OSSL_PARAM params[3];
-    int res;
+    OSSL_PARAM params[3] = {0};
+    int res = 0;
 
     if ((bin = BIO_new_from_core_bio(dctx->libctx, cin)) == NULL) {
         LOG_ERROR("BIO_new_from_core_bio failed!");
@@ -243,7 +243,7 @@ static int gtaossl_provider_base_subject_pub_key_info_does_selection(void * prov
 
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
-    size_t i;
+    size_t i = 0;
 
     LOG_TRACE_ARG("Selection: %d", selection);
 

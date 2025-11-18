@@ -66,7 +66,8 @@ int base_64_decode(const char * b64message, unsigned char ** buffer, size_t * le
     printf("\nBase64Decode input b64message = %s\n", b64message);
 #endif
 
-    BIO *bio, *b64;
+    BIO * bio = NULL;
+    BIO * b64 = NULL;
 
     int decodeLen = calc_decode_length(b64message);
     *buffer = (unsigned char *)malloc(decodeLen + 1);
@@ -90,8 +91,9 @@ int base_64_decode(const char * b64message, unsigned char ** buffer, size_t * le
  */
 int base_64_encode(const unsigned char * buffer, size_t length, char ** b64text)
 {
-    BIO *bio, *b64;
-    BUF_MEM * bufferPtr;
+    BIO * bio = NULL;
+    BIO * b64 = NULL;
+    BUF_MEM * bufferPtr = NULL;
 
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_new(BIO_s_mem());
