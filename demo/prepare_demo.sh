@@ -4,10 +4,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-if [ "$1" = "ec" ]; then
+if [[ "$1" = "ec" ]]; then
   echo "Generate EC key materials..."
   PROFILE="ec"
-elif [ "$1" = "dilithium" ]; then
+elif [[ "$1" = "dilithium" ]]; then
   echo "Generate PQ key materials..."
   PROFILE="dilithium2"
 else
@@ -32,7 +32,7 @@ else
     exit 1
 fi
 
-if [ "$PROFILE" = "dilithium2" ]; then
+if [[ "$PROFILE" = "dilithium2" ]]; then
     if openssl list -provider oqsprovider -providers; then
         echo "The oqsprovider installed... OK"
     else
@@ -44,7 +44,7 @@ if [ "$PROFILE" = "dilithium2" ]; then
     fi
 fi
 
-if [ -d "$GTA_STATE_DIRECTORY" ]; then
+if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
     echo "$GTA_STATE_DIRECTORY directory exists."
 else
     echo "Create $GTA_STATE_DIRECTORY directory."
@@ -59,7 +59,7 @@ rm -rf server/*.pem
 mkdir CA
 mkdir -p $GTA_STATE_DIRECTORY
 
-if [ "$PROFILE" = "ec" ]; then
+if [[ "$PROFILE" = "ec" ]]; then
     echo "Create CA credentials"
     openssl req -x509 -new -newkey ec:<(openssl genpkey -genparam -algorithm ec -pkeyopt ec_paramgen_curve:P-256) -keyout CA/CAkey.pem -out CA/CAcert.pem -nodes -subj "/CN=Demo CA" -days 365
 
@@ -69,7 +69,7 @@ if [ "$PROFILE" = "ec" ]; then
 fi 
 
 
-if [ "$PROFILE" = "dilithium2" ]; then
+if [[ "$PROFILE" = "dilithium2" ]]; then
     SIG_ALG="dilithium2"
     export OPENSSL_CONF=./openssl_config/openssl.cnf
     OPENSSL_CONF_CA=./openssl_config/openssl_ca.cnf
@@ -95,12 +95,12 @@ echo "gta_identifier_assign"
 gta-cli identifier_assign --id_type=identifier1 --id_val=identifier1
 
 echo "Create GTA personality for client"
-if [ "$PROFILE" = "ec" ]; then
+if [[ "$PROFILE" = "ec" ]]; then
     echo "gta_personality_create ec"
     gta-cli personality_create --id_val=identifier1 --pers=pers_${PROFILE}_default --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.ec   
 fi
 
-if [ "$PROFILE" = "dilithium2" ]; then
+if [[ "$PROFILE" = "dilithium2" ]]; then
     echo "gta_personality_create dilitihium"
     gta-cli personality_create --id_val=identifier1 --pers=pers_${PROFILE}_default --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.dilithium
 fi
@@ -112,7 +112,7 @@ cat ./client/csr.pem
 
 echo "Create client certificate from public key"
 
-if [ "$PROFILE" = "dilithium2" ]; then
+if [[ "$PROFILE" = "dilithium2" ]]; then
     openssl x509 -provider oqsprovider -provider default -req -in client/csr.pem  -CAkey CA/CAkey.pem -CA CA/CAcert.pem -days 365
 else
     openssl x509 -req -in client/csr.pem -out client/cert.pem -CAkey CA/CAkey.pem -CA CA/CAcert.pem -CAcreateserial -days 365
