@@ -29,7 +29,7 @@ fi
 
 echo "Create reference to GTA API public key for OpenSSL provider (personality_name,profile_name)"
 echo "-----BEGIN GTA TRUSTED KEY-----" > "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem"
-echo -n "CMP,com.github.generic-trust-anchor-api.basic.tls" | base64 >> "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem"
+echo -n "CMP,com.github.generic-trust-anchor-api.basic.signature" | base64 >> "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem"
 echo "-----END GTA TRUSTED KEY-----" >> "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem"
 cat "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem"
 echo ""
@@ -37,13 +37,13 @@ echo ""
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "Remove old trusted certificate"
-gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.tls --attr_name="Trusted"
+gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Trusted"
 
 echo "Get Insta CA certificate"
 wget 'http://pki.certificate.fi:8081/install-ca-cert.html/ca-certificate.crt?ca-id=632&download-certificate=1' -O "$CMP_CREDENTIAL_DIR/insta.ca.crt"
 
 echo "Add trusted certificate to personality"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.tls --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Trusted" --attr_val="$CMP_CREDENTIAL_DIR/insta.ca.crt"
+gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Trusted" --attr_val="$CMP_CREDENTIAL_DIR/insta.ca.crt"
 
 echo "List the stored attributes (after the root CA install)"
 gta-cli personality_attributes_enumerate --pers=CMP
@@ -59,13 +59,13 @@ echo "List the stored attributes (before remove)"
 gta-cli personality_attributes_enumerate --pers=CMP
 
 echo "Remove old certificate"
-gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.tls --attr_name="Test Cert"
+gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Test Cert"
 
 echo "List the stored attributes (after remove)"
 gta-cli personality_attributes_enumerate --pers=CMP
 
 echo "Add new certificate to personality"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.tls --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$CMP_CREDENTIAL_DIR/test.cert.pem"
+gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$CMP_CREDENTIAL_DIR/test.cert.pem"
 
 echo "List the stored attributes (new)"
 gta-cli personality_attributes_enumerate --pers=CMP

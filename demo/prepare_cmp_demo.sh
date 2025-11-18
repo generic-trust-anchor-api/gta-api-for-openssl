@@ -43,7 +43,7 @@ rm -f "$CMP_CREDENTIAL_DIR/"*
 
 echo "Create reference to GTA API private key for OpenSSL provider (personality_name,profile_name)"
 echo "-----BEGIN GTA PRIVATE KEY-----" > "$CMP_CREDENTIAL_DIR/gta-key.pem"
-echo -n "CMP,com.github.generic-trust-anchor-api.basic.tls" | base64 >> "$CMP_CREDENTIAL_DIR/gta-key.pem"
+echo -n "CMP,com.github.generic-trust-anchor-api.basic.signature" | base64 >> "$CMP_CREDENTIAL_DIR/gta-key.pem"
 echo "-----END GTA PRIVATE KEY-----" >> "$CMP_CREDENTIAL_DIR/gta-key.pem"
 cat "$CMP_CREDENTIAL_DIR/gta-key.pem"
 echo ""

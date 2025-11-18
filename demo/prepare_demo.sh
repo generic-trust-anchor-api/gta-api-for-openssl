@@ -85,10 +85,10 @@ fi
 
 echo "Update GTA personality for client in the gta-key.pem"
 echo "-----BEGIN GTA PRIVATE KEY-----" >./client/gta-key.pem
-# b64(pers_dilithium2_default,com.github.generic-trust-anchor-api.basic.tls)
+# b64(pers_dilithium2_default,com.github.generic-trust-anchor-api.basic.signature)
 # or
-# b64(pers_ec_default,com.github.generic-trust-anchor-api.basic.tls)
-echo -n "pers_${PROFILE}_default,com.github.generic-trust-anchor-api.basic.tls" | base64 >>./client/gta-key.pem
+# b64(pers_ec_default,com.github.generic-trust-anchor-api.basic.signature)
+echo -n "pers_${PROFILE}_default,com.github.generic-trust-anchor-api.basic.signature" | base64 >>./client/gta-key.pem
 echo "-----END GTA PRIVATE KEY-----" >>./client/gta-key.pem
 
 echo "gta_identifier_assign"
