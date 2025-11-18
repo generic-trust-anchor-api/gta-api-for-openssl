@@ -284,7 +284,7 @@ static void generate_ossl_parameters(void ** key, OSSL_PARAM * params)
 
     params[0] = OSSL_PARAM_construct_int(OSSL_OBJECT_PARAM_TYPE, &object_type);
     params[1] = OSSL_PARAM_construct_utf8_string(OSSL_OBJECT_PARAM_DATA_TYPE, OQS_DILITHIUM_2, 0);
-    params[2] = OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE, &(*key), sizeof((*key)));
+    params[2] = OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE, key, sizeof(*key));
     params[3] = OSSL_PARAM_construct_end();
 }
 

@@ -170,13 +170,14 @@ int gtaossl_provider_base_gta_decoder_decode(
     memcpy(pkey->string, buf, read);
     LOG_TRACE_ARG("pkey->string: %s", pkey->string);
 
-    char * personality = strtok(pkey->string, ",");
+    char * saveptr = NULL;
+    char * personality = strtok_r(pkey->string, ",", &saveptr);
     if (NULL == personality) {
         LOG_DEBUG("strtok failed - no personalty info in the string");
         return NOK;
     }
 
-    char * profile = strtok(NULL, ",");
+    char * profile = strtok_r(NULL, ",", &saveptr);
     if (NULL == profile) {
         LOG_DEBUG("strtok failed - no profile info in the string");
         return NOK;

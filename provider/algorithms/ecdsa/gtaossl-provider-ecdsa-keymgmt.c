@@ -198,7 +198,7 @@ static void parse_ec_pem_object(char * onlyTheB64Part, SubjectPublicKeyInfo ** p
     const unsigned char * const_pub_bytes_buffer = pub_bytes_buffer;
 
     LOG_TRACE("Parse input");
-    (*pub_key) = d2i_SubjectPublicKeyInfo(&(*pub_key), &const_pub_bytes_buffer, pub_bytes_length);
+    (*pub_key) = d2i_SubjectPublicKeyInfo(pub_key, &const_pub_bytes_buffer, pub_bytes_length);
 }
 
 /**

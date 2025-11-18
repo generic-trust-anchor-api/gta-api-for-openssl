@@ -151,13 +151,14 @@ static int gtaossl_provider_base_pem_decoder_decode(
             }
             memcpy(buf, der_data, der_len);
 
-            char * personality = strtok(buf, ",");
+            char * saveptr = NULL;
+            char * personality = strtok_r(buf, ",", &saveptr);
             if (NULL == personality) {
                 LOG_ERROR("strtok failed - no personalty info in the string");
                 return NOK;
             }
 
-            char * profile = strtok(NULL, ",");
+            char * profile = strtok_r(NULL, ",", &saveptr);
             if (NULL == profile) {
                 LOG_ERROR("strtok failed - no profile info in the string");
                 return NOK;

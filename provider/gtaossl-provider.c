@@ -523,7 +523,7 @@ static int clean_up(GTA_PROVIDER_CTX * prov, int ret, gta_errinfo_t * errinfo)
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     if (ret == 0) {
         if (prov->h_inst != NULL) {
-            gta_instance_final(prov->h_inst, &(*errinfo));
+            gta_instance_final(prov->h_inst, errinfo);
         }
 
         LOG_TRACE("OSSL Context free in clean");
