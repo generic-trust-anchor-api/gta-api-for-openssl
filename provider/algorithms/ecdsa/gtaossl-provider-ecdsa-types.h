@@ -30,7 +30,7 @@ extern "C" {
  *   algorithm AlgorithmIdentifier SEQUENCE (2 elem)
  *          algorithm OBJECT IDENTIFIER 1.2.840.10045.2.1 ecPublicKey (ANSI X9.62 public key type)
  *          parameters ANY OBJECT IDENTIFIER 1.2.840.10045.3.1.7 prime256v1 (ANSI X9.62 named elliptic curve)
- *   subjectPublicKey BIT STRING (520 bit) 0000010001001001001000110010011101000101101010101111110001010100110001…
+ *   subjectPublicKey BIT STRING (520 bit) 0000010001001001001000110010011101000101101010101111110001010100110001...
  *
  * Reverted structure:
  * https://lapo.it/asn1js/#MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAESSMnRar8VMTuqBfayu085FuJb5L7PANK8dkIKJfSpltPFkOeg6dtgD4dGJYfczDL1YmkQhmvTQ1dvoUSaZVeHQ
