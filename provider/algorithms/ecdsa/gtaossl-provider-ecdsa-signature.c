@@ -153,6 +153,9 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
+    /* Currently unused */
+    (void)ctx;
+
     OSSL_PARAM * p = NULL;
 
     if (params == NULL) {
@@ -194,6 +197,11 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
 static int gtaossl_provider_ecdsa_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)params;
+
     return OK;
 }
 

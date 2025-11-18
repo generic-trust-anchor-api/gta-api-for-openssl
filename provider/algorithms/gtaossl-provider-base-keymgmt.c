@@ -109,6 +109,9 @@ int gtaossl_provider_base_keymgmt_set_params(void * keydata, const OSSL_PARAM pa
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     const OSSL_PARAM * p = NULL;
 
+    /* Currently unused */
+    (void)keydata;
+
     if (params == NULL) {
         LOG_WARN_ARG("%s -> return 1", __func__);
         return OK;
@@ -130,6 +133,10 @@ int gtaossl_provider_base_keymgmt_set_params(void * keydata, const OSSL_PARAM pa
 const OSSL_PARAM * gtaossl_provider_base_keymgmt_settable_params(void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)provctx;
+
     static OSSL_PARAM settable[] = {
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY, NULL, 0), OSSL_PARAM_END};
 

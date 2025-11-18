@@ -129,6 +129,10 @@ int gtaossl_provider_base_gta_decoder_decode(
     GTA_DECODER_CTX * dctx = ctx;
     BIO * bin = NULL;
 
+    /* Currently unused */
+    (void)pw_cb;
+    (void)pw_cbarg;
+
     LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
 
     OSSL_PARAM params[4] = {0};
@@ -279,6 +283,13 @@ int gtaossl_provider_base_gta_decoder_export_object(
     LOG_INFO("GTA decoder tries to export object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
+    /* Currently unused */
+    (void)ctx;
+    (void)objref;
+    (void)objref_sz;
+    (void)export_cb;
+    (void)export_cbarg;
+
     LOG_DEBUG_ARG("(%s) return NOK", __func__);
     return NOK;
 }
@@ -292,6 +303,9 @@ int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Selection: %d", selection);
+
+    /* Currently unused */
+    (void)provctx;
 
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};

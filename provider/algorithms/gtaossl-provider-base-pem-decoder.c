@@ -107,6 +107,10 @@ static int gtaossl_provider_base_pem_decoder_decode(
     LOG_TRACE_ARG("%s -> input (selection = %d)", __func__, selection);
     GTA_DER_DECODER_CTX * dctx = ctx;
 
+    /* Currently unused */
+    (void)pw_cb;
+    (void)pw_cbarg;
+
     BIO * bin = NULL;
     char * pem_name = NULL;
     char * pem_header = NULL;
@@ -241,6 +245,9 @@ static int gtaossl_provider_base_subject_pub_key_info_does_selection(void * prov
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)provctx;
 
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};

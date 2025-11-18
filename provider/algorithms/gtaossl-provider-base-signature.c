@@ -88,6 +88,9 @@ int gtaossl_provider_base_signature_digest_init(
     GTA_SIGNATURE_CTX * sctx = ctx;
     GTA_PKEY * pkey = provkey;
 
+    /* Currently unused */
+    (void)params;
+
     if (NULL != pkey) {
         LOG_TRACE_ARG("pkey->string: %s", pkey->string);
         LOG_TRACE_ARG("pkey->profile_name: %s", pkey->profile_name);
@@ -120,6 +123,13 @@ int gtaossl_provider_base_signature_digest_sign_final(void * ctx, unsigned char 
     LOG_TRACE_ARG("Input of %s : sig= %s", __func__, sig);
     LOG_TRACE_ARG("Input of %s : siglen= %zu", __func__, *siglen);
     LOG_TRACE_ARG("Input of %s : sigsize= %zu", __func__, sigsize);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)sig;
+    (void)siglen;
+    (void)sigsize;
+
     return NOK;
 }
 
@@ -129,6 +139,11 @@ int gtaossl_provider_base_signature_digest_sign_final(void * ctx, unsigned char 
 const OSSL_PARAM * gtaossl_provider_base_signature_gettable_ctx_params(void * ctx, void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)provctx;
+
     static OSSL_PARAM gettable[] = {
         OSSL_PARAM_octet_string(OSSL_SIGNATURE_PARAM_ALGORITHM_ID, NULL, 0), OSSL_PARAM_END};
 
@@ -141,6 +156,11 @@ const OSSL_PARAM * gtaossl_provider_base_signature_gettable_ctx_params(void * ct
 const OSSL_PARAM * gtaossl_provider_base_signature_settable_ctx_params(void * ctx, void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)provctx;
+
     static OSSL_PARAM settable[] = {OSSL_PARAM_utf8_string(OSSL_SIGNATURE_PARAM_DIGEST, NULL, 0), OSSL_PARAM_END};
 
     return settable;
@@ -161,6 +181,9 @@ int gtaossl_provider_base_signature_digest_verify_init(
 
     GTA_SIGNATURE_CTX * sctx = ctx;
     GTA_PKEY * pkey = provkey;
+
+    /* Currently unused */
+    (void)params;
 
     if (NULL != pkey) {
         LOG_TRACE_ARG("pkey->string: %s", pkey->string);

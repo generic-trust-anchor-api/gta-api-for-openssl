@@ -46,7 +46,10 @@ static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_dilithium_keymgmt_exim
 static int gtaossl_provider_dilithium_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    OSSL_PARAM * p;
+    OSSL_PARAM * p = NULL;
+
+    /* Currently unused */
+    (void)keydata;
 
     if (params == NULL) {
         LOG_ERROR_ARG("%s -> params array is null", __func__);
@@ -93,6 +96,10 @@ error:
 static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_gettable_params(void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)provctx;
+
     static OSSL_PARAM gettable[] = {
         OSSL_PARAM_int(OSSL_PKEY_PARAM_BITS, NULL),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_SECURITY_BITS, NULL),
