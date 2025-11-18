@@ -24,14 +24,14 @@ else
     exit 1
 fi
 
-if [ -d "$GTA_STATE_DIRECTORY" ]; then
+if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
     echo "$GTA_STATE_DIRECTORY directory exists."
 else
     echo "Create $GTA_STATE_DIRECTORY directory."
     mkdir -p "$GTA_STATE_DIRECTORY"
 fi
 
-if [ -d "$CMP_CREDENTIAL_DIR" ]; then
+if [[ -d "$CMP_CREDENTIAL_DIR" ]]; then
     echo "$CMP_CREDENTIAL_DIR directory exists."
 else
     echo "Create $CMP_CREDENTIAL_DIR directory."
