@@ -26,8 +26,8 @@ extern "C" {
 #define LOG_USE_STDIO 1
 
 #if LOG_USE_STDIO
-#define LOG__STDIO_FPRINTF(stream, fmt, ...) fprintf(stream, fmt, __VA_ARGS__);
-#define LOG__STDIO_FPRINTS(stream, fmt) fprintf(stream, fmt);
+#define LOG__STDIO_FPRINTF(stream, fmt, ...) fprintf(stream, fmt, __VA_ARGS__)
+#define LOG__STDIO_FPRINTS(stream, fmt) fprintf(stream, fmt)
 #else
 #define LOG__STDIO_FPRINTF(stream, fmt, ...)
 #define LOG__STDIO_FPRINTS(stream, fmt)
@@ -56,11 +56,11 @@ extern "C" {
     }
 
 #if LOG_LEVEL == LOG_LEVEL_TRACE
-#define LOG_TRACE_ARG(fmt, ...) LOG__DECL_LOGLEVELF("TRACE", fmt, __VA_ARGS__);
-#define LOG_TRACE(fmt) LOG__DECL_LOGLEVELS("TRACE", fmt);
+#define LOG_TRACE_ARG(fmt, ...) LOG__DECL_LOGLEVELF("TRACE", fmt, __VA_ARGS__)
+#define LOG_TRACE(fmt) LOG__DECL_LOGLEVELS("TRACE", fmt)
 #ifdef LOG_BYTE_ARRARY_ON
-#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) printf(fmt, __VA_ARGS__);
-#define LOG_TRACE_KEY_DATA(fmt) printf(fmt);
+#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) printf(fmt, __VA_ARGS__)
+#define LOG_TRACE_KEY_DATA(fmt) printf(fmt)
 #else
 #define LOG_TRACE_KEY_DATA_ARG(fmt, ...)
 #define LOG_TRACE_KEY_DATA(fmt)
@@ -73,32 +73,32 @@ extern "C" {
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_DEBUG
-#define LOG_DEBUG_ARG(fmt, ...) LOG__DECL_LOGLEVELF("DEBUG", fmt, __VA_ARGS__);
-#define LOG_DEBUG(fmt) LOG__DECL_LOGLEVELS("DEBUG", fmt);
+#define LOG_DEBUG_ARG(fmt, ...) LOG__DECL_LOGLEVELF("DEBUG", fmt, __VA_ARGS__)
+#define LOG_DEBUG(fmt) LOG__DECL_LOGLEVELS("DEBUG", fmt)
 #else
 #define LOG_DEBUG_ARG(fmt, ...)
 #define LOG_DEBUG(fmt)
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_INFO
-#define LOG_INFO_ARG(fmt, ...) LOG__DECL_LOGLEVELF("INFO", fmt, __VA_ARGS__);
-#define LOG_INFO(fmt) LOG__DECL_LOGLEVELS("INFO", fmt);
+#define LOG_INFO_ARG(fmt, ...) LOG__DECL_LOGLEVELF("INFO", fmt, __VA_ARGS__)
+#define LOG_INFO(fmt) LOG__DECL_LOGLEVELS("INFO", fmt)
 #else
 #define LOG_INFO_ARG(fmt, ...)
 #define LOG_INFO(fmt)
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_WARN
-#define LOG_WARN_ARG(fmt, ...) LOG__DECL_LOGLEVELF("WARNING", fmt, __VA_ARGS__);
-#define LOG_WARN(fmt) LOG__DECL_LOGLEVELS("WARNING", fmt);
+#define LOG_WARN_ARG(fmt, ...) LOG__DECL_LOGLEVELF("WARNING", fmt, __VA_ARGS__)
+#define LOG_WARN(fmt) LOG__DECL_LOGLEVELS("WARNING", fmt)
 #else
 #define LOG_WARN_ARG(fmt, ...)
 #define LOG_WARN(fmt)
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_ERROR
-#define LOG_ERROR_ARG(fmt, ...) LOG__DECL_LOGLEVELF("ERROR", fmt, __VA_ARGS__);
-#define LOG_ERROR(fmt) LOG__DECL_LOGLEVELS("ERROR", fmt);
+#define LOG_ERROR_ARG(fmt, ...) LOG__DECL_LOGLEVELF("ERROR", fmt, __VA_ARGS__)
+#define LOG_ERROR(fmt) LOG__DECL_LOGLEVELS("ERROR", fmt)
 #else
 #define LOG_ERROR_ARG(fmt, ...)
 #define LOG_ERROR(fmt)
