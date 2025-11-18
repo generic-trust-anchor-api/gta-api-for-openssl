@@ -33,7 +33,7 @@ openssl cmp -server pki.certificate.fi:8700/pkix/ -secret pass:insta -recipient 
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "Store issued cert"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.tls --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$CMP_CREDENTIAL_DIR/test.cert.pem"
+gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$CMP_CREDENTIAL_DIR/test.cert.pem"
 
 echo "List the stored attributes"
 gta-cli personality_attributes_enumerate --pers=CMP

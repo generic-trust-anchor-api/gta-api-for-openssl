@@ -674,7 +674,7 @@ int OSSL_provider_init(
         .provider_init = gta_sw_provider_init,
         .provider_init_config = (gtaio_istream_t *)&init_config,
         .profile_info = {
-            .profile_name = "com.github.generic-trust-anchor-api.basic.tls",
+            .profile_name = "com.github.generic-trust-anchor-api.basic.signature",
             .protection_properties = {0},
             .priority = 0}};
 
