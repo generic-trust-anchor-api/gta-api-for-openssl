@@ -64,6 +64,10 @@ gtaossl_provider_dilithium_signature_digest_verify_update(void * ctx, const unsi
 {
     LOG_INFO("Update signature digest");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+
 #ifdef LOG_B64_ON
     char * dataBase64;
     base_64_encode(data, datalen, &dataBase64);
@@ -128,6 +132,9 @@ gtaossl_provider_dilithium_signature_digest_verify_final(void * ctx, const unsig
 {
     LOG_INFO("Finalize signature digest");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
 
 #ifdef LOG_B64_ON
     char * signBase64;

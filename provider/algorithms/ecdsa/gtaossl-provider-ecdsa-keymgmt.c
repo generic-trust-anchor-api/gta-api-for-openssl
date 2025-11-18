@@ -50,6 +50,9 @@ static int gtaossl_provider_ecdsa_keymgmt_get_params(void * keydata, OSSL_PARAM 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     OSSL_PARAM * p = NULL;
 
+    /* Currently unused */
+    (void)keydata;
+
     if (params == NULL) {
         LOG_ERROR_ARG("%s -> params array is null", __func__);
         return OK;
@@ -103,6 +106,10 @@ error:
 static const OSSL_PARAM * gtaossl_provider_ecdsa_keymgmt_gettable_params(void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)provctx;
+
     static OSSL_PARAM gettable[] = {
         OSSL_PARAM_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, NULL, 0),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_BITS, NULL),
@@ -198,7 +205,7 @@ static void parse_ec_pem_object(char * onlyTheB64Part, SubjectPublicKeyInfo ** p
     const unsigned char * const_pub_bytes_buffer = pub_bytes_buffer;
 
     LOG_TRACE("Parse input");
-    (*pub_key) = d2i_SubjectPublicKeyInfo(&(*pub_key), &const_pub_bytes_buffer, pub_bytes_length);
+    (*pub_key) = d2i_SubjectPublicKeyInfo(pub_key, &const_pub_bytes_buffer, pub_bytes_length);
 }
 
 /**

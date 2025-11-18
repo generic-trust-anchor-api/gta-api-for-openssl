@@ -141,6 +141,9 @@ static const OSSL_PARAM * gtaossl_provider_gettable_params(void * provctx)
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
+    /* Currently unused */
+    (void)provctx;
+
     static const OSSL_PARAM param_types[] = {
         OSSL_PARAM_DEFN(OSSL_PROV_PARAM_NAME, OSSL_PARAM_UTF8_PTR, NULL, 0),
         OSSL_PARAM_DEFN(OSSL_PROV_PARAM_VERSION, OSSL_PARAM_UTF8_PTR, NULL, 0),
@@ -300,6 +303,9 @@ static void gtaossl_provider_unquery_operation(void * provctx, int id, const OSS
     LOG_DEBUG("Finalization work for the query operation");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
+    /* Currently unused */
+    (void)provctx;
+
     if (alg != NULL) {
         for (int i = 0; alg[i].algorithm_names != NULL; i++) {
             LOG_TRACE_ARG("algorithm_names = %s", alg[i].algorithm_names);
@@ -414,6 +420,9 @@ int gtaossl_provider_get_capabilities(void * provctx, const char * capability, O
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Capability: %s", capability);
 
+    /* Currently unused */
+    (void)provctx;
+
     if (strcasecmp(capability, "TLS-GROUP") == 0) {
         LOG_TRACE("In case of TLS-GROUP capability");
         LOG_WARN("Ignore to set callback function for TLS-GROUP capability");
@@ -523,7 +532,7 @@ static int clean_up(GTA_PROVIDER_CTX * prov, int ret, gta_errinfo_t * errinfo)
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     if (ret == 0) {
         if (prov->h_inst != NULL) {
-            gta_instance_final(prov->h_inst, &(*errinfo));
+            gta_instance_final(prov->h_inst, errinfo);
         }
 
         LOG_TRACE("OSSL Context free in clean");

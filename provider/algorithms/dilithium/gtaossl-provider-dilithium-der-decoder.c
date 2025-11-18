@@ -96,6 +96,10 @@ static int gtaossl_provider_dilithium_der2key_decode(
     int ok = NOK;
     GTA_PKEY * pKey = NULL;
 
+    /* Currently unused */
+    (void)pw_cb;
+    (void)pw_cbarg;
+
     LOG_INFO("Decode dilithium der object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("%s -> input (selection = %d)", __func__, selection);
@@ -213,6 +217,9 @@ static int gtaossl_provider_dilithium_subject_pub_key_info_does_selection(void *
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
+    /* Currently unused */
+    (void)provctx;
+
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
     size_t i;
@@ -284,7 +291,7 @@ static void generate_ossl_parameters(void ** key, OSSL_PARAM * params)
 
     params[0] = OSSL_PARAM_construct_int(OSSL_OBJECT_PARAM_TYPE, &object_type);
     params[1] = OSSL_PARAM_construct_utf8_string(OSSL_OBJECT_PARAM_DATA_TYPE, OQS_DILITHIUM_2, 0);
-    params[2] = OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE, &(*key), sizeof((*key)));
+    params[2] = OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE, key, sizeof(*key));
     params[3] = OSSL_PARAM_construct_end();
 }
 
