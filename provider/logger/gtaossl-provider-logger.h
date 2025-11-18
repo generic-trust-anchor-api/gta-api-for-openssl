@@ -29,8 +29,8 @@ extern "C" {
 #define LOG__STDIO_FPRINTF(stream, fmt, ...) fprintf(stream, fmt, __VA_ARGS__)
 #define LOG__STDIO_FPRINTS(stream, fmt) fprintf(stream, fmt)
 #else
-#define LOG__STDIO_FPRINTF(stream, fmt, ...)
-#define LOG__STDIO_FPRINTS(stream, fmt)
+#define LOG__STDIO_FPRINTF(stream, fmt, ...) ((void)0)
+#define LOG__STDIO_FPRINTS(stream, fmt) ((void)0)
 #endif
 
 #define LOG__XSTR(x) #x
@@ -62,7 +62,7 @@ extern "C" {
 #define LOG_TRACE_KEY_DATA_ARG(fmt, ...) printf(fmt, __VA_ARGS__)
 #define LOG_TRACE_KEY_DATA(fmt) printf(fmt)
 #else
-#define LOG_TRACE_KEY_DATA_ARG(fmt, ...)
+#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) ((void)0)
 #define LOG_TRACE_KEY_DATA(fmt) ((void)0)
 #endif
 #else
