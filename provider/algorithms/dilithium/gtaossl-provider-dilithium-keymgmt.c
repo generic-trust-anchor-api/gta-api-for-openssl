@@ -137,7 +137,7 @@ static void parse_dilithium_pem_object(char * onlyTheB64Part, SubjectPublicKeyIn
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    unsigned char * pub_bytes_buffer;
+    unsigned char * pub_bytes_buffer = 0;
     size_t pub_bytes_length = sizeof(pub_bytes_buffer);
 
     LOG_TRACE("Convert to raw");

@@ -127,12 +127,13 @@ int gtaossl_provider_base_gta_decoder_decode(
     LOG_INFO("Decode GTA object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     GTA_DECODER_CTX * dctx = ctx;
-    BIO * bin;
+    BIO * bin = NULL;
 
     LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
 
-    OSSL_PARAM params[4];
-    int fpos, object_type;
+    OSSL_PARAM params[4] = {0};
+    int fpos = 0;
+    int object_type = 0;
     int res = NOK;
 
     if ((bin = BIO_new_from_core_bio(dctx->libctx, cin)) == NULL) {

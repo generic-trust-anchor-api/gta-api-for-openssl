@@ -164,7 +164,7 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
-    OSSL_PARAM * p;
+    OSSL_PARAM * p = NULL;
     GTA_PROVIDER_CTX * prov = provctx;
 
     if (prov == NULL) {

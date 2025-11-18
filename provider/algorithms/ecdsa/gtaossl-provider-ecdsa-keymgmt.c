@@ -48,7 +48,7 @@ static OSSL_FUNC_keymgmt_query_operation_name_fn gtaossl_provider_ecdsa_keymgmt_
 static int gtaossl_provider_ecdsa_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    OSSL_PARAM * p;
+    OSSL_PARAM * p = NULL;
 
     if (params == NULL) {
         LOG_ERROR_ARG("%s -> params array is null", __func__);
@@ -182,7 +182,7 @@ static void parse_ec_pem_object(char * onlyTheB64Part, SubjectPublicKeyInfo ** p
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    unsigned char * pub_bytes_buffer;
+    unsigned char * pub_bytes_buffer = NULL;
     size_t pub_bytes_length = sizeof(pub_bytes_buffer);
 
     LOG_TRACE("Convert to raw");
