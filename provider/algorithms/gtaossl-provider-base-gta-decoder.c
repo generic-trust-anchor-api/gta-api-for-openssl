@@ -59,7 +59,7 @@ char * strlwr(char * str)
     unsigned char * p = (unsigned char *)str;
 
     while (*p) {
-        *p = (unsigned char)tolower((unsigned char)*p);
+        *p = (unsigned char)tolower(*p);
         p++;
     }
 

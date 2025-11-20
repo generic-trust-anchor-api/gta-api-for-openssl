@@ -130,7 +130,7 @@ static void parse_dilithium_key_data_1(
         LOG_WARN("No context in keydata1");
     } else {
         LOG_TRACE("We have a context in keydata1");
-        (*kctx) = (GTA_PROVIDER_CTX *)(pkey1->provctx);
+        *kctx = pkey1->provctx;
     }
 }
 
@@ -270,7 +270,7 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
             LOG_WARN("No context in keydata2");
         } else {
             LOG_TRACE("We have a context in keydata2");
-            kctx = (GTA_PROVIDER_CTX *)(pkey2->provctx);
+            kctx = pkey2->provctx;
         }
 
         gta_errinfo_t errinfo = 0;
@@ -326,7 +326,7 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
             char * pub_key_begin = PUB_KEY_BEGIN_TAG;
             char * pub_key_end = PUB_KEY_END_TAG;
 
-            char * onlyTheB64Part = str_remove((char *)ostream_data.buf, pub_key_begin);
+            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
             onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
 
