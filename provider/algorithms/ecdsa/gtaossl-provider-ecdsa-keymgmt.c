@@ -155,6 +155,8 @@ static const char * gtaossl_provider_ecdsa_keymgmt_query_operation_name(int oper
     case OSSL_OP_SIGNATURE:
         LOG_INFO("Signature");
         return "ECDSA";
+    default:
+        break;
     }
     return NULL;
 }

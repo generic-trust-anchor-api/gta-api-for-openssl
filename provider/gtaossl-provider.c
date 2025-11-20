@@ -104,6 +104,8 @@ static int gtaossl_provider_init_openssl_core(const OSSL_DISPATCH * disp)
                 core_vset_error = OSSL_FUNC_core_vset_error(disp);
             }
             break;
+        default:
+            return NOK;
         }
     }
 
@@ -284,6 +286,9 @@ static const OSSL_ALGORITHM * gtaossl_provider_query_operation(void * provctx, i
     case OSSL_OP_DECODER:
         LOG_INFO("Decoder");
         return gtaossl_provider_decoders;
+
+    default:
+        break;
     }
 
     LOG_TRACE("Currently the provider only supports digest functions");
