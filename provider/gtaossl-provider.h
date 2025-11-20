@@ -20,16 +20,9 @@
  * The general approach is the following:
  *
  * 1. The GTA API is called in a custom OpenSSL provider for client authentication
- *    during the TLS handshake.
- *    a) In the case of the EC algorithm, single or mixed provider usage is also possible.
- *       The difference between single and mixed usage is that the provider should support
- *       all security operations or use the existing solution from the default provider
- *       together with GTA API SW functionalities.
- *       @note: If the CUSTOM_EC_VERIFIER macro is not defined, the default provider's
- *       implemented verifier will be used.
- *    b) In the case of post-quantum algorithm (currently, only Dilithium 2 is supported
- *       by the GTA API SW provider), the provider should support all security
- *       operations alone.
+ *    during the TLS handshake. Only the private key operation (signature generation) is
+ *    performed by this provider. For the signature verification, the default provider is
+ *    used.
  *
  * 2. Initialization and contexts: The decoder (GTA_DER_DECODER_CTX | GTA_DECODER_CTX),
  *    key manager (GTA_KEYMANAGER_CTX), and signature (GTA_SIGNATURE_CTX) contexts shall

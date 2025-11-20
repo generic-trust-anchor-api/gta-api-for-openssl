@@ -109,7 +109,9 @@ OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_base_signature_digest_i
  *
  * int gtaossl_provider_base_signature_digest_sign_final(void *ctx, unsigned char *sig, size_t *siglen, size_t sigsize)
  */
+#if 0
 OSSL_FUNC_signature_digest_sign_final_fn gtaossl_provider_base_signature_digest_sign_final;
+#endif
 
 /**
  * Configure the gettable OSSL parameters:
@@ -146,33 +148,6 @@ OSSL_FUNC_signature_gettable_ctx_params_fn gtaossl_provider_base_signature_getta
  * const OSSL_PARAM *gtaossl_provider_base_signature_settable_ctx_params(void *ctx, void *provctx)
  */
 OSSL_FUNC_signature_settable_ctx_params_fn gtaossl_provider_base_signature_settable_ctx_params;
-
-/**
- * Initialization of the signature verification context:
- *
- * 1. The init function reads the personality and profile name from provider key
- *    input parameter.
- *
- * 2. This function tries to open the GTA context
- *    using the personality and profile names
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- *
- * @param[in] ctx: signature context
- * @param[in] mdname: name of the digest
- * @param[in] provkey: provider key object, that can be converted to GTA_PKEY
- * @param[in] params: OSSL parameter collection to extend the context (optional),
- *                  currently, this parameter is not used
- *
- * @return OK = 1
- * @return NOK = 0
- */
-int gtaossl_provider_base_signature_digest_verify_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[]);
 
 /**
  * The function implements a "one-shot" digest sign operation,
