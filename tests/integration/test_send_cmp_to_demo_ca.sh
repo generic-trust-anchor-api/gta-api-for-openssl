@@ -22,4 +22,5 @@ function test_send_cmp_to_fake_ca
     assert_output_contains "CMP DEBUG: successfully validated PBM-based CMP message protection"
     assert_output_contains "CMP DEBUG: validating CMP message"
     assert_output_contains "Attribute Name:   Test Cert"
+    return 0
 }

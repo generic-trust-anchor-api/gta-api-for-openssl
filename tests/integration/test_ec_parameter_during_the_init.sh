@@ -29,4 +29,5 @@ function test_ec_parameter_during_the_init
     assert_error_contains "verify return:1"
     assert_error_contains "depth=0"
     assert_error_contains "verify return:1"
+    return 0
 }

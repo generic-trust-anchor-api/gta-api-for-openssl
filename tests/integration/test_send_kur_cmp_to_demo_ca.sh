@@ -28,4 +28,5 @@ function test_send_kur_cmp_to_fake_ca
     assert_output_contains "CMP DEBUG: validating CMP message"
     assert_output_contains "Attribute Name:   Trusted"
     assert_output_contains "Attribute Name:   Test Cert"
+    return 0
 }
