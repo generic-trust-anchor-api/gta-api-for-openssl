@@ -86,7 +86,6 @@ The following tools and libraries need to be installed for build and run the dem
     * Enable log all byte array: __-DLOG_BYTE_ARRARY_ON__
     * Enable log all base 64 string: __-DLOG_B64_ON__
     * Enable log all base 64 string: __-DLOG_FOR_CYCLE_ON__
-    * Enable custom ec verifier methods: __-DCUSTOM_EC_VERIFIER__
     * Selected log level: __-DLOG_LEVEL=0__ (TRACE 0 | DEBUG 1 | INFO  2 | WARN  3 | ERROR 4)
 * Optional parameters to change install traget: 
     * OPENSSL_MODULES_DIR ?= /lib/x86_64-linux-gnu/ossl-modules/

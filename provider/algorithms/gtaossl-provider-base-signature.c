@@ -116,6 +116,7 @@ int gtaossl_provider_base_signature_digest_init(
 /**
  * The function finalizes a signature operation but does not contain any implementation.
  */
+#if 0
 int gtaossl_provider_base_signature_digest_sign_final(void * ctx, unsigned char * sig, size_t * siglen, size_t sigsize)
 {
     LOG_INFO("Finalize signature digest");
@@ -132,6 +133,7 @@ int gtaossl_provider_base_signature_digest_sign_final(void * ctx, unsigned char 
 
     return NOK;
 }
+    #endif
 
 /**
  * Configure the gettable OSSL parameters.
@@ -164,47 +166,6 @@ const OSSL_PARAM * gtaossl_provider_base_signature_settable_ctx_params(void * ct
     static OSSL_PARAM settable[] = {OSSL_PARAM_utf8_string(OSSL_SIGNATURE_PARAM_DIGEST, NULL, 0), OSSL_PARAM_END};
 
     return settable;
-}
-
-/**
- * Initialization of the signature verification context.
- */
-int gtaossl_provider_base_signature_digest_verify_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[])
-{
-    LOG_INFO("Initialize a context for digest signing");
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Input parameter mdname: %s", mdname);
-
-    GTA_SIGNATURE_CTX * sctx = ctx;
-    GTA_PKEY * pkey = provkey;
-
-    /* Currently unused */
-    (void)params;
-
-    if (NULL != pkey) {
-        LOG_TRACE_ARG("pkey->string: %s", pkey->string);
-        LOG_TRACE_ARG("pkey->profile_name: %s", pkey->profile_name);
-        LOG_TRACE_ARG("pkey->personality_name: %s", pkey->personality_name);
-    } else {
-        LOG_WARN("No pkey!");
-        return NOK;
-    }
-
-    /* We currently only do the signature calculation */
-    if ((NULL != pkey->profile_name) && (NULL != pkey->personality_name)) {
-        gta_errinfo_t errinfo = 0;
-        sctx->h_ctx =
-            gta_context_open(sctx->provider_ctx->h_inst, pkey->personality_name, pkey->profile_name, &errinfo);
-        if (NULL == sctx->h_ctx) {
-            LOG_ERROR_ARG("GTA context open failed: %lu", errinfo);
-            return NOK;
-        }
-    }
-    return OK;
 }
 
 /**

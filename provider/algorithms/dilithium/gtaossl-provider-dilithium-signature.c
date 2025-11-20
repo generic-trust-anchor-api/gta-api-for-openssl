@@ -17,10 +17,12 @@
 #include <openssl/provider.h>
 #include <string.h>
 
-static OSSL_FUNC_signature_digest_verify_init_fn gtaossl_provider_dilithium_signature_digest_verify_init;
 static OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_dilithium_signature_digest_sign;
+#if 0
+static OSSL_FUNC_signature_digest_verify_init_fn gtaossl_provider_dilithium_signature_digest_verify_init;
 static OSSL_FUNC_signature_digest_verify_update_fn gtaossl_provider_dilithium_signature_digest_verify_update;
 static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_dilithium_signature_digest_verify_final;
+#endif
 
 /**
  * The function extends the base signature digest verify init.
@@ -37,6 +39,7 @@ static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_dilithium_sig
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
  */
+#if 0
 static int gtaossl_provider_dilithium_signature_digest_verify_init(
     void * ctx,
     const char * mdname,
@@ -46,6 +49,7 @@ static int gtaossl_provider_dilithium_signature_digest_verify_init(
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     return gtaossl_provider_base_signature_digest_verify_init(ctx, mdname, provkey, params);
 }
+#endif
 
 /**
  * This function updates a signature operation but does not contain any implementation.
@@ -59,6 +63,7 @@ static int gtaossl_provider_dilithium_signature_digest_verify_init(
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
  */
+#if 0
 static int
 gtaossl_provider_dilithium_signature_digest_verify_update(void * ctx, const unsigned char * data, size_t datalen)
 {
@@ -85,6 +90,7 @@ gtaossl_provider_dilithium_signature_digest_verify_update(void * ctx, const unsi
 
     return OK;
 }
+#endif
 
 /**
  * The function extends the base signature digest sign.
@@ -127,6 +133,7 @@ static int gtaossl_provider_dilithium_signature_digest_sign(
  * @param[in] siglen: length of input byte array
  * @return OK = 1
  */
+#if 0
 static int
 gtaossl_provider_dilithium_signature_digest_verify_final(void * ctx, const unsigned char * sig, size_t siglen)
 {
@@ -146,25 +153,52 @@ gtaossl_provider_dilithium_signature_digest_verify_final(void * ctx, const unsig
 
     return OK;
 }
+#endif
+
+static int gtaossl_provider_dilithium_signature_get_ctx_params(void * ctx, OSSL_PARAM params[])
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)params;
+
+    return NOK;
+}
+
+static int gtaossl_provider_dilithium_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)ctx;
+    (void)params;
+
+    return OK;
+}
 
 const OSSL_DISPATCH dilithium_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))gtaossl_provider_base_signature_newctx},
     {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))gtaossl_provider_base_signature_freectx},
+#if 0
     {OSSL_FUNC_SIGNATURE_SIGN_INIT, NULL},
     {OSSL_FUNC_SIGNATURE_SIGN, NULL},
+#endif
     {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_digest_init},
+#if 0
     {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_FINAL, (void (*)(void))gtaossl_provider_base_signature_digest_sign_final},
+    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_FINAL, NULL},
+#endif
+    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_dilithium_signature_digest_sign},
+#if 0
     {OSSL_FUNC_SIGNATURE_VERIFY_INIT, NULL},
     {OSSL_FUNC_SIGNATURE_VERIFY, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_dilithium_signature_digest_sign},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_INIT, (void (*)(void))gtaossl_provider_dilithium_signature_digest_verify_init},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_UPDATE,
-     (void (*)(void))gtaossl_provider_dilithium_signature_digest_verify_update},
+    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_INIT, NULL},
     {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_FINAL, (void (*)(void))gtaossl_provider_dilithium_signature_digest_verify_final},
-    {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, NULL},
+    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_FINAL, NULL},
+#endif
+    {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_dilithium_signature_get_ctx_params},
     {OSSL_FUNC_SIGNATURE_GETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_gettable_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, NULL},
+    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_dilithium_signature_set_ctx_params},
     {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_settable_ctx_params},
     {0, NULL}};
