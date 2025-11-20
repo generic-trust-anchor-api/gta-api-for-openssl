@@ -69,21 +69,21 @@ int base_64_decode(const char * b64message, unsigned char ** buffer, size_t * le
     BIO * bio = NULL;
     BIO * b64 = NULL;
 
-    int decodeLen = calc_decode_length(b64message);
+    size_t decodeLen = calc_decode_length(b64message);
     *buffer = (unsigned char *)malloc(decodeLen + 1);
     (*buffer)[decodeLen] = '\0';
 
-    bio = BIO_new_mem_buf(b64message, strlen(b64message));
+    bio = BIO_new_mem_buf(b64message, (int)strlen(b64message));
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_push(b64, bio);
 
     BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
-    *length = BIO_read(bio, *buffer, strlen(b64message));
+    *length = BIO_read(bio, *buffer, (int)strlen(b64message));
 
-    *length = (size_t)decodeLen;
+    *length = decodeLen;
 
     BIO_free_all(bio);
-    return (OK);
+    return OK;
 }
 
 /**
@@ -95,17 +95,21 @@ int base_64_encode(const unsigned char * buffer, size_t length, char ** b64text)
     BIO * b64 = NULL;
     BUF_MEM * bufferPtr = NULL;
 
+    if (INT_MAX < length) {
+        return NOK;
+    }
+
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_new(BIO_s_mem());
     bio = BIO_push(b64, bio);
 
     BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
-    BIO_write(bio, buffer, length);
+    BIO_write(bio, buffer, (int)length);
     BIO_flush(bio);
     BIO_get_mem_ptr(bio, &bufferPtr);
     BIO_set_close(bio, BIO_NOCLOSE);
     BIO_free_all(bio);
 
     *b64text = (*bufferPtr).data;
-    return (OK);
+    return OK;
 }

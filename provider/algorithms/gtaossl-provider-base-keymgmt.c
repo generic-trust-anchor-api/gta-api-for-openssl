@@ -248,7 +248,7 @@ void base_parse_key_data_1(
     LOG_TRACE_ARG("Function(%s) GTA pkey1->profile_name = %s", __func__, pkey1->profile_name);
 
 #ifdef LOG_B64_ON
-    char * pubKeyBase64;
+    char * pubKeyBase64 = NULL;
     base_64_encode((const unsigned char *)(pkey1->pub_key), pkey1->pub_key_size, &pubKeyBase64);
 
     LOG_TRACE_ARG("%s : b64_enc(pkey1->pub_key)= %s", __func__, pubKeyBase64);
@@ -256,7 +256,7 @@ void base_parse_key_data_1(
     LOG_TRACE_ARG("Function(%s) GTA pkey1->pub_key_size = %zu", __func__, pkey1->pub_key_size);
 
     ASN1_BIT_STRING * pub_part = ASN1_BIT_STRING_new();
-    ASN1_BIT_STRING_set(pub_part, (unsigned char *)(pkey1->pub_key), pkey1->pub_key_size);
+    ASN1_BIT_STRING_set(pub_part, (unsigned char *)(pkey1->pub_key), (int)pkey1->pub_key_size);
 
     LOG_TRACE_ARG("pub_part->length: %d", pub_part->length);
 #ifdef LOG_BYTE_ARRARY_ON

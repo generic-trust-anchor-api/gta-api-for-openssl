@@ -263,7 +263,7 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
 
     BUF_MEM * b = NULL;
     unsigned char * p = NULL;
-    int i = 0;
+    long i = 0;
     size_t want = HEADER_SIZE;
     uint32_t eos = 0;
     size_t off = 0;
@@ -292,7 +292,11 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
                 LOG_ERROR("Problem 1");
                 goto err;
             }
-            i = BIO_read(in, &(b->data[len]), want);
+            /* range check */
+            if (INT_MAX < want) {
+                goto err;
+            }
+            i = BIO_read(in, &(b->data[len]), (int)want);
             if (i < 0 && diff == 0) {
                 LOG_ERROR("Problem 2");
                 goto err;
@@ -366,7 +370,11 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
                     }
                     want -= chunk;
                     while (chunk > 0) {
-                        i = BIO_read(in, &(b->data[len]), chunk);
+                        /* range check */
+                        if (INT_MAX < chunk) {
+                            goto err;
+                        }
+                        i = BIO_read(in, &(b->data[len]), (int)chunk);
                         if (i <= 0) {
                             LOG_ERROR("ASN1 R not enough data");
                             goto err;
@@ -400,6 +408,10 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
     }
 
     *pb = b;
+    /* range check */
+    if (INT_MAX < off) {
+        goto err;
+    }
     return off;
 err:
     ERR_clear_last_mark();
