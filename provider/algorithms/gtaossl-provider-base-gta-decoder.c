@@ -59,7 +59,7 @@ char * strlwr(char * str)
     unsigned char * p = (unsigned char *)str;
 
     while (*p) {
-        *p = tolower((unsigned char)*p);
+        *p = (unsigned char)tolower(*p);
         p++;
     }
 
@@ -136,7 +136,6 @@ int gtaossl_provider_base_gta_decoder_decode(
     LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
 
     OSSL_PARAM params[4] = {0};
-    int fpos = 0;
     int object_type = 0;
     int res = NOK;
 
@@ -145,7 +144,7 @@ int gtaossl_provider_base_gta_decoder_decode(
         goto error1;
     }
 
-    if ((fpos = BIO_tell(bin)) == -1) {
+    if (BIO_tell(bin) == -1) {
         LOG_ERROR("BIO position problem");
         goto error2;
     }
@@ -325,7 +324,6 @@ int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
 
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
-    size_t i;
 
     /* The decoder implementations made here support guessing */
     if (selection == 0) {
@@ -333,7 +331,7 @@ int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
         return OK;
     }
 
-    for (i = 0; i < OSSL_NELEM(checks); i++) {
+    for (size_t i = 0; i < OSSL_NELEM(checks); i++) {
         int check1 = (selection & checks[i]) != 0;
         int check2 = (OSSL_KEYMGMT_SELECT_PRIVATE_KEY & checks[i]) != 0;
 

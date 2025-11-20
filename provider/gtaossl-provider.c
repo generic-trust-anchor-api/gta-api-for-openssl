@@ -168,7 +168,7 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
     OSSL_PARAM * p = NULL;
-    GTA_PROVIDER_CTX * prov = provctx;
+    const GTA_PROVIDER_CTX * prov = provctx;
 
     if (prov == NULL) {
         LOG_ERROR("Provider null");
@@ -258,7 +258,7 @@ static const OSSL_ALGORITHM * gtaossl_provider_query_operation(void * provctx, i
     LOG_DEBUG("Select methods for the operation");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("id=%d", id);
-    GTA_PROVIDER_CTX * cprov = provctx;
+    const GTA_PROVIDER_CTX * cprov = provctx;
 
     (void)cprov;
 
@@ -391,11 +391,10 @@ static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
 static int oqs_sigalg_capability(OSSL_CALLBACK * cb, void * arg)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    size_t i;
 
     // Relaxed assertion for the case that not all algorithms are enabled in liboqs:
     // assert(OSSL_NELEM(oqs_param_sigalg_list) <= OSSL_NELEM(oqs_sigalg_list));
-    for (i = 0; i < OSSL_NELEM(oqs_param_sigalg_list); i++) {
+    for (size_t i = 0; i < OSSL_NELEM(oqs_param_sigalg_list); i++) {
         if (!cb(oqs_param_sigalg_list[i], arg)) {
             LOG_ERROR("Error during the configuration of the callback function for sigalg capability");
             return NOK;
@@ -449,7 +448,7 @@ static int gtaossl_provider_self_test(void * provctx)
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    GTA_PROVIDER_CTX * cprov = provctx;
+    const GTA_PROVIDER_CTX * cprov = provctx;
     int ret = 0;
 
     (void)cprov;
@@ -572,7 +571,9 @@ int OSSL_provider_init(
     int ret = NOK;
 
     LOG_TRACE("Set provider name, version and files to null (only for testing)");
-    const char *core_version = NULL, *core_prov_name = NULL, *core_module_filename = NULL;
+    const char * core_version = NULL;
+    const char * core_prov_name = NULL;
+    const char * core_module_filename = NULL;
 
     OSSL_PARAM requests_to_core[] = {
         OSSL_PARAM_utf8_ptr(OSSL_PROV_PARAM_CORE_VERSION, &core_version, 0),

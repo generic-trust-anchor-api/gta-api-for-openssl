@@ -168,7 +168,7 @@ parse_ec_key_data_1(const void * keydata1, unsigned char ** pub_key_from_data_1,
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
 
     base_parse_key_data_1(keydata1, pub_key_from_data_1, size_of_pub_key_from_data_1);
 
@@ -303,7 +303,7 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
     } else {
         LOG_TRACE("Key data 2 is not null");
 
-        GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
+        const GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
 
         LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
         LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);
@@ -353,10 +353,10 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
 #endif
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = PUB_KEY_BEGIN_TAG;
-            char * pub_key_end = PUB_KEY_END_TAG;
+            const char * pub_key_begin = PUB_KEY_BEGIN_TAG;
+            const char * pub_key_end = PUB_KEY_END_TAG;
 
-            char * onlyTheB64Part = str_remove((char *)ostream_data.buf, pub_key_begin);
+            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
             onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
 #ifdef LOG_B64_ON
@@ -485,7 +485,8 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
         return NOK;
     }
 
-    OSSL_PARAM params[3], *p = params;
+    OSSL_PARAM params[3] = {0};
+    OSSL_PARAM * p = params;
     if ((selection & OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) != 0) {
         LOG_TRACE("OSSL_KEYMGMT_SELECT_ALL_PARAMETERS");
         *p++ = OSSL_PARAM_construct_utf8_string(
@@ -537,10 +538,10 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
 #endif
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = "-----BEGIN PUBLIC KEY-----\n";
-            char * pub_key_end = "\n-----END PUBLIC KEY-----\n";
+            const char * pub_key_begin = "-----BEGIN PUBLIC KEY-----\n";
+            const char * pub_key_end = "\n-----END PUBLIC KEY-----\n";
 
-            char * onlyTheB64Part = str_remove((char *)ostream_data.buf, pub_key_begin);
+            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
             onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
 #ifdef LOG_B64_ON

@@ -62,7 +62,7 @@ void * gtaossl_provider_base_keymgmt_load(const void * reference, size_t referen
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("reference_sz: %zu", reference_sz);
 
-    GTA_PKEY * pkey = *(GTA_PKEY **)reference;
+    const GTA_PKEY * pkey = *(GTA_PKEY **)reference;
 
     LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
     LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
@@ -159,7 +159,7 @@ int gtaossl_provider_base_keymgmt_has(const void * keydata, int selection)
     } else {
         LOG_TRACE("Key data is not null");
 #if LOG_LEVEL == LOG_LEVEL_TRACE
-        GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+        const GTA_PKEY * pkey = (GTA_PKEY *)keydata;
 
         LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
         LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
@@ -241,14 +241,14 @@ void base_parse_key_data_1(
     size_t * size_of_pub_key_from_data_1)
 {
 
-    GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
 
     LOG_TRACE_ARG("Function(%s) GTA pkey1->string = %s", __func__, pkey1->string);
     LOG_TRACE_ARG("Function(%s) GTA pkey1->personality_name = %s", __func__, pkey1->personality_name);
     LOG_TRACE_ARG("Function(%s) GTA pkey1->profile_name = %s", __func__, pkey1->profile_name);
 
 #ifdef LOG_B64_ON
-    char * pubKeyBase64;
+    char * pubKeyBase64 = NULL;
     base_64_encode((const unsigned char *)(pkey1->pub_key), pkey1->pub_key_size, &pubKeyBase64);
 
     LOG_TRACE_ARG("%s : b64_enc(pkey1->pub_key)= %s", __func__, pubKeyBase64);
@@ -256,7 +256,7 @@ void base_parse_key_data_1(
     LOG_TRACE_ARG("Function(%s) GTA pkey1->pub_key_size = %zu", __func__, pkey1->pub_key_size);
 
     ASN1_BIT_STRING * pub_part = ASN1_BIT_STRING_new();
-    ASN1_BIT_STRING_set(pub_part, (unsigned char *)(pkey1->pub_key), pkey1->pub_key_size);
+    ASN1_BIT_STRING_set(pub_part, (unsigned char *)(pkey1->pub_key), (int)pkey1->pub_key_size);
 
     LOG_TRACE_ARG("pub_part->length: %d", pub_part->length);
 #ifdef LOG_BYTE_ARRARY_ON

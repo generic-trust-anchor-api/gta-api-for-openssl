@@ -122,7 +122,7 @@ static void parse_dilithium_key_data_1(
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
 
     base_parse_key_data_1(keydata1, pub_key_from_data_1, size_of_pub_key_from_data_1);
 
@@ -130,7 +130,7 @@ static void parse_dilithium_key_data_1(
         LOG_WARN("No context in keydata1");
     } else {
         LOG_TRACE("We have a context in keydata1");
-        (*kctx) = (GTA_PROVIDER_CTX *)(pkey1->provctx);
+        *kctx = pkey1->provctx;
     }
 }
 
@@ -257,7 +257,7 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
     } else {
         LOG_TRACE("Key data 2 is not null");
 
-        GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
+        const GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
 
         LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
         LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);
@@ -270,7 +270,7 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
             LOG_WARN("No context in keydata2");
         } else {
             LOG_TRACE("We have a context in keydata2");
-            kctx = (GTA_PROVIDER_CTX *)(pkey2->provctx);
+            kctx = pkey2->provctx;
         }
 
         gta_errinfo_t errinfo = 0;
@@ -323,10 +323,10 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
 
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = PUB_KEY_BEGIN_TAG;
-            char * pub_key_end = PUB_KEY_END_TAG;
+            const char * pub_key_begin = PUB_KEY_BEGIN_TAG;
+            const char * pub_key_end = PUB_KEY_END_TAG;
 
-            char * onlyTheB64Part = str_remove((char *)ostream_data.buf, pub_key_begin);
+            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
             onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
 
