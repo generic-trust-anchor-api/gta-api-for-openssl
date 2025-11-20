@@ -303,7 +303,7 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
     } else {
         LOG_TRACE("Key data 2 is not null");
 
-        const GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
+        const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
 
         LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
         LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);

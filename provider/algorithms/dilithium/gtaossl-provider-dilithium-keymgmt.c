@@ -122,7 +122,7 @@ static void parse_dilithium_key_data_1(
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    const GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
 
     base_parse_key_data_1(keydata1, pub_key_from_data_1, size_of_pub_key_from_data_1);
 
@@ -257,7 +257,7 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
     } else {
         LOG_TRACE("Key data 2 is not null");
 
-        const GTA_PKEY * pkey2 = (GTA_PKEY *)keydata2;
+        const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
 
         LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
         LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);
