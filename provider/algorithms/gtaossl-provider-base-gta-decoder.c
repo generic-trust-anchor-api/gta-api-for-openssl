@@ -324,7 +324,6 @@ int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
 
     int checks[] = {
         OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
-    size_t i;
 
     /* The decoder implementations made here support guessing */
     if (selection == 0) {
@@ -332,7 +331,7 @@ int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
         return OK;
     }
 
-    for (i = 0; i < OSSL_NELEM(checks); i++) {
+    for (size_t i = 0; i < OSSL_NELEM(checks); i++) {
         int check1 = (selection & checks[i]) != 0;
         int check2 = (OSSL_KEYMGMT_SELECT_PRIVATE_KEY & checks[i]) != 0;
 
