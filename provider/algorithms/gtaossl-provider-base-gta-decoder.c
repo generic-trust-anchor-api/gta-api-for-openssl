@@ -136,7 +136,6 @@ int gtaossl_provider_base_gta_decoder_decode(
     LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
 
     OSSL_PARAM params[4] = {0};
-    int fpos = 0;
     int object_type = 0;
     int res = NOK;
 
@@ -145,7 +144,7 @@ int gtaossl_provider_base_gta_decoder_decode(
         goto error1;
     }
 
-    if ((fpos = BIO_tell(bin)) == -1) {
+    if (BIO_tell(bin) == -1) {
         LOG_ERROR("BIO position problem");
         goto error2;
     }
