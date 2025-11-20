@@ -9,6 +9,7 @@
 #include "../logger/gtaossl-provider-logger.h"
 #include "../stream/streams.h"
 #include "gtaossl-provider-base-decoder.h"
+#include "gtaossl-provider-base-gta-decoder.h"
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
 #include <openssl/core_object.h>
@@ -21,7 +22,6 @@
 static OSSL_FUNC_decoder_newctx_fn gtaossl_provider_base_pem_decoder_newctx;
 static OSSL_FUNC_decoder_freectx_fn gtaossl_provider_base_pem_decoder_freectx;
 static OSSL_FUNC_decoder_decode_fn gtaossl_provider_base_pem_decoder_decode;
-static OSSL_FUNC_decoder_does_selection_fn gtaossl_provider_base_subject_pub_key_info_does_selection;
 
 /**
  * The PEM decoder new context function should create and return a pointer
@@ -221,73 +221,9 @@ static int gtaossl_provider_base_pem_decoder_decode(
     return res;
 }
 
-/**
- * OSSL_FUNC_decoder_does_selection() should indicate if a particular
- * implementation supports any of the combinations given by selection.
- *
- * 1. In the current demo,
- * - If the selection is a private key, then the function will return with true.
- * - In case of public key and parameter selection, return false.
- * - If the selection is 0, the function will return true.
- *
- * 2. In case of GTA API usage, the private key must be handled by the GTA provider.
- * All private key-related functions must be overwrite in the gtaossl provider.
- *
- * @param[in] provctx: provider context
- * @param[in] selection: type of the selection
- * @return OK = 1
- * @return NOK = 0
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-decoder/#description
- */
-static int gtaossl_provider_base_subject_pub_key_info_does_selection(void * provctx, int selection)
-{
-
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-
-    /* Currently unused */
-    (void)provctx;
-
-    int checks[] = {
-        OSSL_KEYMGMT_SELECT_PRIVATE_KEY, OSSL_KEYMGMT_SELECT_PUBLIC_KEY, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
-    size_t i = 0;
-
-    LOG_TRACE_ARG("Selection: %d", selection);
-
-    /* The decoder implementations made here support guessing */
-    if (selection == 0) {
-        LOG_TRACE_ARG("%s - The decoder implementations made here support guessing.", __func__);
-        return OK;
-    }
-
-    for (i = 0; i < OSSL_NELEM(checks); i++) {
-        int check1 = (selection & checks[i]) != 0;
-        int check2 = (OSSL_KEYMGMT_SELECT_PUBLIC_KEY & checks[i]) != 0;
-
-#ifdef LOG_FOR_CYCLE_ON
-        LOG_TRACE_ARG("Check 1: %d", check1);
-
-        LOG_TRACE_ARG("Check 2: %d", check2);
-#endif
-
-        /*
-         * If the caller asked for the currently checked bit(s), return
-         * whether the decoder description says it's supported.
-         */
-        if (check1) {
-            LOG_TRACE_ARG("Return %d", check2);
-            return check2;
-        }
-    }
-
-    LOG_TRACE("Return false");
-    return NOK;
-}
-
 const OSSL_DISPATCH base_decoder_functions[] = {
     {OSSL_FUNC_DECODER_NEWCTX, (void (*)(void))gtaossl_provider_base_pem_decoder_newctx},
     {OSSL_FUNC_DECODER_FREECTX, (void (*)(void))gtaossl_provider_base_pem_decoder_freectx},
-    {OSSL_FUNC_DECODER_DOES_SELECTION, (void (*)(void))gtaossl_provider_base_subject_pub_key_info_does_selection},
+    {OSSL_FUNC_DECODER_DOES_SELECTION, (void (*)(void))gtaossl_provider_base_gta_does_selection},
     {OSSL_FUNC_DECODER_DECODE, (void (*)(void))gtaossl_provider_base_pem_decoder_decode},
     {0, NULL}};

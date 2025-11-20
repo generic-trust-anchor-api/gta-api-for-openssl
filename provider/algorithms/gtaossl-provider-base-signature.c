@@ -133,7 +133,7 @@ int gtaossl_provider_base_signature_digest_sign_final(void * ctx, unsigned char 
 
     return NOK;
 }
-    #endif
+#endif
 
 /**
  * Configure the gettable OSSL parameters.

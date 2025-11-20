@@ -297,6 +297,22 @@ int gtaossl_provider_base_gta_decoder_export_object(
 /**
  * OSSL_FUNC_decoder_does_selection() should indicate if a particular
  * implementation supports any of the combinations given by selection.
+ *
+ * 1. In the current demo,
+ * - If the selection is a private key, then the function will return with true.
+ * - In case of public key and parameter selection, return false.
+ * - If the selection is 0, the function will return true.
+ *
+ * 2. In case of GTA API usage, the private key must be handled by the GTA provider.
+ * All private key-related functions must be overwrite in the gtaossl provider.
+ *
+ * @param[in] provctx: provider context
+ * @param[in] selection: type of the selection
+ * @return OK = 1
+ * @return NOK = 0
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/3.2/man7/provider-decoder/#description
  */
 int gtaossl_provider_base_gta_does_selection(void * provctx, int selection)
 {
