@@ -168,7 +168,7 @@ parse_ec_key_data_1(const void * keydata1, unsigned char ** pub_key_from_data_1,
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    const GTA_PKEY * pkey1 = (GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
 
     base_parse_key_data_1(keydata1, pub_key_from_data_1, size_of_pub_key_from_data_1);
 
@@ -353,8 +353,8 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
 #endif
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = PUB_KEY_BEGIN_TAG;
-            char * pub_key_end = PUB_KEY_END_TAG;
+            const char * pub_key_begin = PUB_KEY_BEGIN_TAG;
+            const char * pub_key_end = PUB_KEY_END_TAG;
 
             char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
@@ -538,8 +538,8 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
 #endif
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = "-----BEGIN PUBLIC KEY-----\n";
-            char * pub_key_end = "\n-----END PUBLIC KEY-----\n";
+            const char * pub_key_begin = "-----BEGIN PUBLIC KEY-----\n";
+            const char * pub_key_end = "\n-----END PUBLIC KEY-----\n";
 
             char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);

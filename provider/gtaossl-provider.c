@@ -168,7 +168,7 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
     OSSL_PARAM * p = NULL;
-    GTA_PROVIDER_CTX * prov = provctx;
+    const GTA_PROVIDER_CTX * prov = provctx;
 
     if (prov == NULL) {
         LOG_ERROR("Provider null");
@@ -258,7 +258,7 @@ static const OSSL_ALGORITHM * gtaossl_provider_query_operation(void * provctx, i
     LOG_DEBUG("Select methods for the operation");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("id=%d", id);
-    GTA_PROVIDER_CTX * cprov = provctx;
+    const GTA_PROVIDER_CTX * cprov = provctx;
 
     (void)cprov;
 
@@ -448,7 +448,7 @@ static int gtaossl_provider_self_test(void * provctx)
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    GTA_PROVIDER_CTX * cprov = provctx;
+    const GTA_PROVIDER_CTX * cprov = provctx;
     int ret = 0;
 
     (void)cprov;

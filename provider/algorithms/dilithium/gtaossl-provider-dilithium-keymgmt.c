@@ -323,8 +323,8 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
 
             LOG_TRACE("Convert");
 
-            char * pub_key_begin = PUB_KEY_BEGIN_TAG;
-            char * pub_key_end = PUB_KEY_END_TAG;
+            const char * pub_key_begin = PUB_KEY_BEGIN_TAG;
+            const char * pub_key_end = PUB_KEY_END_TAG;
 
             char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
             onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);

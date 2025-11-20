@@ -262,7 +262,7 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
     BUF_MEM * b = NULL;
-    unsigned char * p = NULL;
+    const unsigned char * p = NULL;
     long i = 0;
     size_t want = HEADER_SIZE;
     uint32_t eos = 0;
