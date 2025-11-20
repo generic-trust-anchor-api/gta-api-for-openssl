@@ -159,7 +159,7 @@ int gtaossl_provider_base_keymgmt_has(const void * keydata, int selection)
     } else {
         LOG_TRACE("Key data is not null");
 #if LOG_LEVEL == LOG_LEVEL_TRACE
-        const GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+        const GTA_PKEY * pkey = (const GTA_PKEY *)keydata;
 
         LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
         LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
@@ -182,7 +182,7 @@ int gtaossl_provider_base_keymgmt_import(void * keydata, int selection, const OS
     LOG_TRACE_ARG("%s selection: %d", __func__, selection);
     const OSSL_PARAM * p = NULL;
 
-    GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+    GTA_PKEY * pkey = (const GTA_PKEY *)keydata;
 
     if (pkey == NULL) {
         LOG_ERROR_ARG("%s pkey null", __func__);

@@ -412,7 +412,7 @@ int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb)
     if (INT_MAX < off) {
         goto err;
     }
-    return off;
+    return (int)off;
 err:
     ERR_clear_last_mark();
     BUF_MEM_free(b);

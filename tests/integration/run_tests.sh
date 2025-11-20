@@ -13,6 +13,7 @@ function setup
 {
     echo "Setup test env..."
     cd ../..    
+    return 0
 }
 
 function teardown
@@ -35,6 +36,7 @@ function teardown
     echo "The pem file in server dir removed"
     rm -rf ../cmp/cmp_example/*
     echo "The cmp/cmp_example dir removed"
+    return 0
 }
 
 # Test definitions
