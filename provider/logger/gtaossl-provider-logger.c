@@ -17,7 +17,8 @@
 
 size_t calc_decode_length(const char * b64input)
 {
-    size_t len = strlen(b64input), padding = 0;
+    size_t len = strlen(b64input);
+    size_t padding = 0;
 
     if (b64input[len - 1] == '=' && b64input[len - 2] == '=')
         padding = 2;

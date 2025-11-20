@@ -485,7 +485,8 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
         return NOK;
     }
 
-    OSSL_PARAM params[3], *p = params;
+    OSSL_PARAM params[3] = {0};
+    OSSL_PARAM * p = params;
     if ((selection & OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) != 0) {
         LOG_TRACE("OSSL_KEYMGMT_SELECT_ALL_PARAMETERS");
         *p++ = OSSL_PARAM_construct_utf8_string(

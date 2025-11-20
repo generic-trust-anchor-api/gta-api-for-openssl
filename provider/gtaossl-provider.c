@@ -571,7 +571,9 @@ int OSSL_provider_init(
     int ret = NOK;
 
     LOG_TRACE("Set provider name, version and files to null (only for testing)");
-    const char *core_version = NULL, *core_prov_name = NULL, *core_module_filename = NULL;
+    const char * core_version = NULL;
+    const char * core_prov_name = NULL;
+    const char * core_module_filename = NULL;
 
     OSSL_PARAM requests_to_core[] = {
         OSSL_PARAM_utf8_ptr(OSSL_PROV_PARAM_CORE_VERSION, &core_version, 0),
