@@ -337,11 +337,8 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
             unsigned char obuf[SIZE_OF_GTA_O_BUFFER] = {0};
             size_t obuf_size = sizeof(obuf) - 1;
 
-            LOG_TRACE("Open output stream");
-            if (!ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_init failed: %lu", errinfo);
-                return NOK;
-            }
+            LOG_TRACE("Init output stream");
+            ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
 
             LOG_TRACE("gta_personality_enroll(...)");
             if (!gta_personality_enroll(h_ctx, (gtaio_ostream_t *)&ostream_data, &errinfo)) {
@@ -384,11 +381,6 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
             public_key_raw_from_keydata_2_with_gta_api =
                 mem_dup(pub_key->subjectPublicKey->data, (size_t)(pub_key->subjectPublicKey->length));
             size_of_public_key_raw_from_keydata_2_with_gta_api = (size_t)(pub_key->subjectPublicKey->length);
-
-            if (OK != ostream_to_buf_close(&ostream_data, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_close failed: %lu", errinfo);
-                return NOK;
-            }
         }
 
         if (OK != gta_context_close(h_ctx, &errinfo)) {
@@ -522,11 +514,8 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
             unsigned char obuf[SIZE_OF_GTA_O_BUFFER] = {0};
             size_t obuf_size = sizeof(obuf) - 1;
 
-            LOG_TRACE("Open output stream");
-            if (!ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_init failed: %lu", errinfo);
-                return NOK;
-            }
+            LOG_TRACE("Init output stream");
+            ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
 
             LOG_TRACE("gta_personality_enroll(...)");
             if (!gta_personality_enroll(h_ctx, (gtaio_ostream_t *)&ostream_data, &errinfo)) {
@@ -586,11 +575,6 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
             public_key_raw_from_keydata_2_with_gta_api =
                 mem_dup(pub_key->subjectPublicKey->data, (size_t)(pub_key->subjectPublicKey->length));
             size_of_public_key_raw_from_keydata_2_with_gta_api = (size_t)(pub_key->subjectPublicKey->length);
-
-            if (OK != ostream_to_buf_close(&ostream_data, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_close failed: %lu", errinfo);
-                return NOK;
-            }
         }
 
         if (OK != gta_context_close(h_ctx, &errinfo)) {

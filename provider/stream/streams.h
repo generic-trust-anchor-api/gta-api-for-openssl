@@ -50,10 +50,7 @@ typedef struct istream_from_buf {
  * @param[out] p_errinfo: error information
  * @return number of read bytes
  */
-GTA_DECLARE_FUNCTION(
-    size_t,
-    istream_from_buf_read,
-    (istream_from_buf_t * istream, char * data, size_t len, gta_errinfo_t * p_errinfo));
+size_t istream_from_buf_read(istream_from_buf_t * istream, char * data, size_t len, gta_errinfo_t * p_errinfo);
 
 /**
  * Check end of the input stream.
@@ -62,7 +59,7 @@ GTA_DECLARE_FUNCTION(
  * @param p_errinfo: error information
  * @return true if at the end of the buffer
  */
-GTA_DECLARE_FUNCTION(bool, istream_from_buf_eof, (istream_from_buf_t * istream, gta_errinfo_t * p_errinfo));
+bool istream_from_buf_eof(istream_from_buf_t * istream, gta_errinfo_t * p_errinfo);
 
 /**
  * Initialize the input stream.
@@ -70,22 +67,9 @@ GTA_DECLARE_FUNCTION(bool, istream_from_buf_eof, (istream_from_buf_t * istream, 
  * @param[out] istream: input stream
  * @param[in] buf: input buffer
  * @param[in] buf_size: size of the input buffer
- * @param[out] p_errinfo: error information
- * @return true if the stream is initialized
+ * @return void (this function cannot fail)
  */
-GTA_DECLARE_FUNCTION(
-    bool,
-    istream_from_buf_init,
-    (istream_from_buf_t * istream, const char * buf, size_t buf_size, gta_errinfo_t * p_errinfo));
-
-/**
- * Close the input stream.
- *
- * @param[out] istream: input stream
- * @param[out] p_errinfo: error information
- * @return true if the the stream is closed
- */
-GTA_DEFINE_FUNCTION(bool, istream_from_buf_close, (istream_from_buf_t * istream, gta_errinfo_t * p_errinfo));
+void istream_from_buf_init(istream_from_buf_t * istream, const char * buf, size_t buf_size);
 
 /**
  * Finish function.
@@ -95,10 +79,7 @@ GTA_DEFINE_FUNCTION(bool, istream_from_buf_close, (istream_from_buf_t * istream,
  * @param[out] p_errinfo: error information
  * @return true if the reading of stream is finished
  */
-GTA_DEFINE_FUNCTION(
-    bool,
-    ostream_finish,
-    (gtaio_ostream_t * ostream, gta_errinfo_t errinfo, gta_errinfo_t * p_errinfo));
+bool ostream_finish(gtaio_ostream_t * ostream, gta_errinfo_t errinfo, gta_errinfo_t * p_errinfo);
 
 /*
  * gtaio output stream implementation to write the output to a temporary buffer.
@@ -126,10 +107,7 @@ typedef struct ostream_to_buf {
  * @param[out] p_errinfo: error information
  * @return number of written bytes
  */
-GTA_DEFINE_FUNCTION(
-    size_t,
-    ostream_to_buf_write,
-    (ostream_to_buf_t * ostream, const char * data, size_t len, gta_errinfo_t * p_errinfo));
+size_t ostream_to_buf_write(ostream_to_buf_t * ostream, const char * data, size_t len, gta_errinfo_t * p_errinfo);
 
 /**
  * Initialize the output stream.
@@ -137,22 +115,45 @@ GTA_DEFINE_FUNCTION(
  * @param[out] ostream: output stream
  * @param[in] buf: output buffer
  * @param[in] buf_size: size of the output buffer
- * @param[out] p_errinfo: error information
- * @return true if the stream is initialized
+ * @return void (this function cannot fail)
  */
-GTA_DEFINE_FUNCTION(
-    bool,
-    ostream_to_buf_init,
-    (ostream_to_buf_t * ostream, char * buf, size_t buf_size, gta_errinfo_t * p_errinfo));
+void ostream_to_buf_init(ostream_to_buf_t * ostream, char * buf, size_t buf_size);
+
+/*
+ * gtaio output stream implementation to compare a stream output with a string.
+ */
+typedef struct ocmpstream {
+    /* public interface as defined for gtaio_ostream */
+    void * p_reserved0;
+    void * p_reserved1;
+    gtaio_stream_write_t write;
+    gtaio_stream_finish_t finish;
+
+    /* private implementation details */
+    char * buf; /* buffer holding the string to compare with the stream output */
+    size_t pos; /* current position in the buffer */
+    enum { CMP_ONGOING, CMP_EQUAL, CMP_UNEQUAL } cmp_result;
+} ocmpstream_t;
 
 /**
- * Close the output stream.
+ * Compare bytes from the output stream with stored reference.
  *
- * @param ostream: output stream
- * @param p_errinfo: error information
- * @return true if the stream is closed
+ * @param[in] ostream: output steam
+ * @param[out] data: byte array
+ * @param[out] len: length of byte array
+ * @param[out] p_errinfo: error information
+ * @return number of written bytes
  */
-GTA_DECLARE_FUNCTION(bool, ostream_to_buf_close, (ostream_to_buf_t * ostream, gta_errinfo_t * p_errinfo));
+size_t ocmpstream_write(ocmpstream_t * ostream, const char * data, size_t len, gta_errinfo_t * p_errinfo);
+
+/**
+ * Initialize the cmp stream.
+ *
+ * @param[out] ostream: output stream
+ * @param[in] ref: reference string to compare
+ * @return void (this function cannot fail)
+ */
+void ocmpstream_init(ocmpstream_t * ostream, char * ref);
 
 #ifdef __cplusplus
 }
