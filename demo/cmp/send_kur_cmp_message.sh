@@ -37,7 +37,7 @@ echo ""
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "Remove old trusted certificate"
-gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Trusted"
+gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Insta CA cert"
 
 echo "Get Insta CA certificate"
 wget 'http://pki.certificate.fi:8081/install-ca-cert.html/ca-certificate.crt?ca-id=632&download-certificate=1' -O "$CMP_CREDENTIAL_DIR/insta.ca.crt"
