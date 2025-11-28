@@ -62,7 +62,7 @@ void * gtaossl_provider_base_keymgmt_load(const void * reference, size_t referen
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("reference_sz: %zu", reference_sz);
 
-    const GTA_PKEY * pkey = *(GTA_PKEY **)reference;
+    GTA_PKEY * pkey = *(GTA_PKEY **)reference;
 
     LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
     LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);

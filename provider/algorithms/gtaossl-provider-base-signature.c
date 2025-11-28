@@ -205,14 +205,8 @@ int gtaossl_provider_base_signature_digest_sign(
     ostream_to_buf_t ostream_seal = {0};
 
     unsigned char gta_sig[OQS_SIG_BUFFER] = {0};
-    if (OK != istream_from_buf_init(&istream_data_to_seal, (const char *)data, datalen, &errinfo)) {
-        LOG_ERROR("istream_from_buf_init failed");
-        return NOK;
-    }
-    if (OK != ostream_to_buf_init(&ostream_seal, (char *)gta_sig, sizeof(gta_sig), &errinfo)) {
-        LOG_ERROR("ostream_to_buf_init failed");
-        return NOK;
-    }
+    istream_from_buf_init(&istream_data_to_seal, (const char *)data, datalen);
+    ostream_to_buf_init(&ostream_seal, (char *)gta_sig, sizeof(gta_sig));
 
     if (OK != gta_authenticate_data_detached(
                   sctx->h_ctx, (gtaio_istream_t *)&istream_data_to_seal, (gtaio_ostream_t *)&ostream_seal, &errinfo)) {
@@ -230,14 +224,6 @@ int gtaossl_provider_base_signature_digest_sign(
     memcpy(sig, gta_sig, ostream_seal.buf_pos);
     *siglen = ostream_seal.buf_pos;
 
-    if (OK != istream_from_buf_close(&istream_data_to_seal, &errinfo)) {
-        LOG_ERROR("istream_from_buf_close failed");
-        return NOK;
-    }
-    if (OK != ostream_to_buf_close(&ostream_seal, &errinfo)) {
-        LOG_ERROR("ostream_to_buf_close failed");
-        return NOK;
-    }
     if (OK != gta_context_close(sctx->h_ctx, &errinfo)) {
         LOG_ERROR("gta_context_close failed");
         return NOK;

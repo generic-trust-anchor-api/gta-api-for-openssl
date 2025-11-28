@@ -304,11 +304,8 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
             unsigned char obuf[SIZE_OF_GTA_O_BUFFER_FOR_DILITHIUM] = {0};
             size_t obuf_size = sizeof(obuf) - 1;
 
-            LOG_TRACE("Open output stream");
-            if (!ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_init failed: %lu", errinfo);
-                return NOK;
-            }
+            LOG_TRACE("Init output stream");
+            ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
 
             LOG_TRACE("gta_personality_enroll(...)");
             if (!gta_personality_enroll(h_ctx, (gtaio_ostream_t *)&ostream_data, &errinfo)) {
@@ -352,11 +349,6 @@ static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const
             pub_key_from_data_2_with_gta_api =
                 mem_dup(pub_key->public_key_data->data, (size_t)(pub_key->public_key_data->length));
             size_of_pub_key_from_data_2_with_gta_api = (size_t)(pub_key->public_key_data->length);
-
-            if (OK != ostream_to_buf_close(&ostream_data, &errinfo)) {
-                LOG_ERROR_ARG("ostream_to_buf_close failed: %lu", errinfo);
-                return NOK;
-            }
         }
 
         if (OK != gta_context_close(h_ctx, &errinfo)) {

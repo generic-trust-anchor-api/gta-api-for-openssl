@@ -37,13 +37,13 @@ echo ""
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "Remove old trusted certificate"
-gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Trusted"
+gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Insta CA cert"
 
 echo "Get Insta CA certificate"
 wget 'http://pki.certificate.fi:8081/install-ca-cert.html/ca-certificate.crt?ca-id=632&download-certificate=1' -O "$CMP_CREDENTIAL_DIR/insta.ca.crt"
 
 echo "Add trusted certificate to personality"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Trusted" --attr_val="$CMP_CREDENTIAL_DIR/insta.ca.crt"
+gta-cli personality_add_trusted_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.trusted.x509v3 --attr_name="Insta CA cert" --attr_val="$CMP_CREDENTIAL_DIR/insta.ca.crt"
 
 echo "List the stored attributes (after the root CA install)"
 gta-cli personality_attributes_enumerate --pers=CMP

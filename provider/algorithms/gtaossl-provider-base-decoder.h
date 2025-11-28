@@ -26,6 +26,8 @@ struct gta_der_decoder_ctx_st {
     const OSSL_CORE_HANDLE * core;
     OSSL_LIB_CTX * libctx;
     GTA_PROVIDER_CTX * provctx;
+    gta_enum_handle_t h_persenum;
+    gta_personality_attribute_name_t next_attribute;
 };
 
 typedef struct gta_decoder_ctx_st GTA_DECODER_CTX;

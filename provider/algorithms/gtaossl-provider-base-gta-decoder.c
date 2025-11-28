@@ -206,11 +206,8 @@ int gtaossl_provider_base_gta_decoder_decode(
         unsigned char obuf[SIZE_OF_GTA_O_BUFFER] = {0};
         size_t obuf_size = sizeof(obuf) - 1;
 
-        LOG_TRACE("Open output stream");
-        if (!ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size, &errinfo)) {
-            LOG_ERROR_ARG("ostream_to_buf_init failed: %lu", errinfo);
-            return NOK;
-        }
+        LOG_TRACE("Init output stream");
+        ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
 
         LOG_TRACE("Get attribute");
         if (!gta_personality_get_attribute(
@@ -228,11 +225,6 @@ int gtaossl_provider_base_gta_decoder_decode(
                 LOG_DEBUG("Skip decoder");
                 return OK;
             }
-        }
-
-        if (OK != ostream_to_buf_close(&ostream_data, &errinfo)) {
-            LOG_ERROR_ARG("ostream_to_buf_close failed: %lu", errinfo);
-            return NOK;
         }
 
         if (OK != gta_context_close(dctx->h_ctx, &errinfo)) {

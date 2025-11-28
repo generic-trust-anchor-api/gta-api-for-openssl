@@ -681,9 +681,7 @@ int OSSL_provider_init(
         },
         NULL};
 
-    if (!istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1, &errinfo)) {
-        return clean_up(prov, ret, &errinfo);
-    }
+    istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
 
     struct gta_provider_info_t provider_info = {
         .version = 0,
@@ -705,11 +703,6 @@ int OSSL_provider_init(
     LOG_TRACE("Calling gta_register_provider");
     if (1 != gta_register_provider(prov->h_inst, &provider_info, &errinfo)) {
         LOG_ERROR("The gta_register_provider failed");
-        return clean_up(prov, ret, &errinfo);
-    }
-
-    if (!istream_from_buf_close(&init_config, &errinfo)) {
-        LOG_ERROR("The ibufstream closing failed");
         return clean_up(prov, ret, &errinfo);
     }
 
