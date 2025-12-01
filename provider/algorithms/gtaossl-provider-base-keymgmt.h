@@ -134,6 +134,31 @@ OSSL_FUNC_keymgmt_settable_params_fn gtaossl_provider_base_keymgmt_settable_para
 OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
 
 /**
+ * Helper function to get the public key from given GTA API personality.
+ *
+ * @param[in] pkey: pointer to the GTA_PKEY to be converted
+ * @param[in] key: double-pointer to a EVP_PKEY, to store the converted key
+ * @return OK = 1
+ * @return NOK = 0
+ */
+int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key);
+
+/**
+ * Helper function to check if the key data of pkey1 and pkey2 match.
+ *
+ * 1. The `pkey1` parameter is an EVP_PKEY.
+ *
+ * 2. The `pkey2` parameter is a GTA_PKEY. This function retrievs the public key
+ *    and converts it into a EVP_PKEY.
+ *
+ * @param[in] pkey1: pointer to an EVP_PKEY
+ * @param[in] pkey2: pointer to a GTA_PKEY
+ * @return OK = 1
+ * @return NOK = 0
+ */
+int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2);
+
+/**
  * The base key management import function imports data indicated
  * by selection into keydata with values taken from the OSSL_PARAM(3) array params:
  *
@@ -157,19 +182,6 @@ OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
  * int gtaossl_provider_base_keymgmt_import(void *keydata, int selection, const OSSL_PARAM params[])
  */
 OSSL_FUNC_keymgmt_import_fn gtaossl_provider_base_keymgmt_import;
-
-/**
- * The helper function should convert and copy key data
- * form an ASN1 (BIT STRING) structure.
- *
- * @param[in] keydata1: pointer of a key structure
- * @param[out] pub_key_from_data_1: byte array
- * @param[out] size_of_pub_key_from_data_1: size of the byte array
- */
-void base_parse_key_data_1(
-    const void * keydata1,
-    unsigned char ** pub_key_from_data_1,
-    size_t * size_of_pub_key_from_data_1);
 
 #ifdef __cplusplus
 }

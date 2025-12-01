@@ -9,7 +9,6 @@
 #include "../../logger/gtaossl-provider-logger.h"
 #include "../../stream/streams.h"
 #include "../gtaossl-provider-base-keymgmt.h"
-#include "gtaossl-provider-ecdsa-types.h"
 #include <gta_api/gta_api.h>
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
@@ -22,6 +21,7 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/params.h>
+#include <openssl/pem.h>
 #include <openssl/types.h>
 
 static OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_ecdsa_keymgmt_get_params;
@@ -149,9 +149,11 @@ static const char * gtaossl_provider_ecdsa_keymgmt_query_operation_name(int oper
     LOG_INFO("Select key management operation");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     switch (operation_id) {
+#if 0
     case OSSL_OP_KEYEXCH:
         LOG_INFO("Key exchange");
         return "ECDH";
+#endif
     case OSSL_OP_SIGNATURE:
         LOG_INFO("Signature");
         return "ECDSA";
@@ -162,111 +164,12 @@ static const char * gtaossl_provider_ecdsa_keymgmt_query_operation_name(int oper
 }
 
 /**
- * The helper function should convert and copy a key data
- * form an ASN1 (BIT STRING) structure.
- */
-static void
-parse_ec_key_data_1(const void * keydata1, unsigned char ** pub_key_from_data_1, size_t * size_of_pub_key_from_data_1)
-{
-
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
-
-    base_parse_key_data_1(keydata1, pub_key_from_data_1, size_of_pub_key_from_data_1);
-
-    if (pkey1->provctx == NULL) {
-        LOG_WARN("No context in keydata1");
-    } else {
-        LOG_TRACE("We have a context in keydata1");
-    }
-}
-
-/**
- * Parse EC ASN1 structure from a base64 string.
- *
- * @param[in] onlyTheB64Part: base64 string
- * @param[out] pub_key: public key in SubjectPublicKeyInfoDilithium structure
- */
-static void parse_ec_pem_object(char * onlyTheB64Part, SubjectPublicKeyInfo ** pub_key)
-{
-
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    unsigned char * pub_bytes_buffer = NULL;
-    size_t pub_bytes_length = sizeof(pub_bytes_buffer);
-
-    LOG_TRACE("Convert to raw");
-    base_64_decode(onlyTheB64Part, &pub_bytes_buffer, &pub_bytes_length);
-
-    LOG_TRACE_ARG("pub_bytes_length: %zu", pub_bytes_length);
-#ifdef LOG_BYTE_ARRARY_ON
-    for (int i = 0; i < pub_bytes_length; i++) {
-        LOG_TRACE_KEY_DATA_ARG("index: %d -> %#x \n", i, pub_bytes_buffer[i]);
-    }
-#endif
-
-    const unsigned char * const_pub_bytes_buffer = pub_bytes_buffer;
-
-    LOG_TRACE("Parse input");
-    (*pub_key) = d2i_SubjectPublicKeyInfo(pub_key, &const_pub_bytes_buffer, pub_bytes_length);
-}
-
-/**
- * Compare two public key data.
- *
- * @param[in] selection: type of the selection
- * @param[in] pub_key_from_data_1: key data 1
- * @param[in] size_of_pub_key_from_data_1: size of key data 1
- * @param[in] pub_key_from_data_2_with_gta_api: key data 2
- * @param[in] size_of_pub_key_from_data_2_with_gta_api: size of key data 2
- * @param[out] ret: OK = 1 or NOK = 0
- */
-void compare_ec_keydata(
-    int selection,
-    unsigned char * public_key_raw_from_keydata_1,
-    size_t size_of_public_key_raw_from_keydata_1,
-    unsigned char * public_key_raw_from_keydata_2_with_gta_api,
-    size_t size_of_public_key_raw_from_keydata_2_with_gta_api,
-    int * ret)
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s) compare keys", __func__);
-    int key_checked = 0;
-
-    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
-        LOG_TRACE("CASE PUBLIC KEY: Compare EC_POINT(s)");
-
-        if ((size_of_public_key_raw_from_keydata_1 == size_of_public_key_raw_from_keydata_2_with_gta_api) &&
-            (0 == memcmp(
-                      public_key_raw_from_keydata_1,
-                      public_key_raw_from_keydata_2_with_gta_api,
-                      size_of_public_key_raw_from_keydata_1))) {
-
-            LOG_TRACE("Match");
-            (*ret) = OK;
-        } else {
-            LOG_TRACE("Not match");
-            (*ret) = NOK;
-        }
-
-        key_checked = 1;
-    }
-
-    if (!key_checked && (selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
-        LOG_TRACE("CASE PRIVATE KEY: Compare BIGNUM(s)");
-
-        LOG_WARN("Unhandled CASE");
-        (*ret) = NOK;
-    }
-}
-
-/**
  * The function checks if the data subset indicated by selection
  * in keydata1 and keydata2 match.
  *
- * 1. The `keydata1` parameter is represented in EC public key format,
- * which needs to be converted to a byte array.
+ * 1. The `keydata1` parameter is represented in EC public key format (DER)
  *
- * 2. The `keydata2` parameter is stored in the GTA context, which needs to be exported
- * and converted to a byte array.
+ * 2. The `keydata2` parameter is stored in the GTA context
  *
  * 3. In case of key pair selection, `keydata1` and `keydata2` need to be compared.
  * If they are equal, then return true.
@@ -286,132 +189,49 @@ static int gtaossl_provider_ecdsa_keymgmt_match(const void * keydata1, const voi
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Selection = %d", selection);
 
-    unsigned char * public_key_raw_from_keydata_1 = NULL;
-    size_t size_of_public_key_raw_from_keydata_1 = 0;
-    unsigned char * public_key_raw_from_keydata_2_with_gta_api = NULL;
-    size_t size_of_public_key_raw_from_keydata_2_with_gta_api = 0;
-
-    if (keydata1 == NULL) {
-        LOG_TRACE("Key data 1 is null");
+    if ((NULL == keydata1) || (NULL == keydata2)) {
+        LOG_ERROR("keydata1 and/or keydata2 is null");
         return NOK;
-    } else {
-        LOG_TRACE("Key data 1 is not null");
-        parse_ec_key_data_1(keydata1, &public_key_raw_from_keydata_1, &size_of_public_key_raw_from_keydata_1);
     }
 
-    if (keydata2 == NULL) {
-        LOG_TRACE("Key data 2 is null");
+    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
+
+    /* pkey1 needs to be converted to an EVP_PKEY */
+    EVP_PKEY * key1 = EVP_PKEY_new();
+    OSSL_PARAM params[2] = {0};
+
+    LOG_TRACE_ARG("OBJ_nid2sn(pkey1->group_name): %s", OBJ_nid2sn(pkey1->group_nid));
+
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, OBJ_nid2sn(pkey1->group_nid), 0);
+    params[1] = OSSL_PARAM_construct_end();
+
+    EVP_PKEY_CTX * pctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
+    if (!pctx || !EVP_PKEY_fromdata_init(pctx) ||
+        !EVP_PKEY_fromdata(pctx, &key1, OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS, params)) {
+        LOG_ERROR("Setting up pctx failed");
         return NOK;
-    } else {
-        LOG_TRACE("Key data 2 is not null");
-
-        const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
-
-        LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
-        LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);
-        LOG_TRACE_ARG("Function (%s) GTA pkey2->profile_name = %s", __func__, pkey2->profile_name);
-
-        LOG_TRACE_ARG("Function (%s) GTA pkey2->pub_key = %s", __func__, pkey2->pub_key);
-        LOG_TRACE_ARG("Function (%s) GTA pkey2->pub_key_size = %zu", __func__, pkey2->pub_key_size);
-
-        if (pkey2->provctx == NULL) {
-            LOG_WARN("No context in keydata2");
-            return NOK;
-        } else {
-            LOG_TRACE("We have a context in keydata2");
-        }
-
-        gta_errinfo_t errinfo = 0;
-        gta_context_handle_t h_ctx = GTA_HANDLE_INVALID;
-
-        LOG_TRACE("GTA context open");
-        h_ctx = gta_context_open(pkey2->provctx->h_inst, pkey2->personality_name, pkey2->profile_name, &errinfo);
-
-        if (NULL == h_ctx) {
-            LOG_WARN_ARG("GTA context open problem: %lu", errinfo);
-            return NOK;
-        } else {
-            LOG_TRACE("We have a GTA context");
-
-            ostream_to_buf_t ostream_data = {0};
-            unsigned char obuf[SIZE_OF_GTA_O_BUFFER] = {0};
-            size_t obuf_size = sizeof(obuf) - 1;
-
-            LOG_TRACE("Init output stream");
-            ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
-
-            LOG_TRACE("gta_personality_enroll(...)");
-            if (!gta_personality_enroll(h_ctx, (gtaio_ostream_t *)&ostream_data, &errinfo)) {
-                LOG_ERROR_ARG("gta_personality_enroll failed: %lu", errinfo);
-                return NOK;
-            }
-
-            LOG_TRACE_ARG("ostream_data.pos=%ld", (long)ostream_data.buf_pos);
-#ifdef LOG_B64_ON
-            LOG_TRACE_ARG("ostream_data.buf=%s", ostream_data.buf);
-#endif
-            LOG_TRACE("Convert");
-
-            const char * pub_key_begin = PUB_KEY_BEGIN_TAG;
-            const char * pub_key_end = PUB_KEY_END_TAG;
-
-            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
-            onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
-            onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
-#ifdef LOG_B64_ON
-            LOG_TRACE_ARG("B64 part: %s", onlyTheB64Part);
-#endif
-            SubjectPublicKeyInfo * pub_key = NULL;
-            parse_ec_pem_object(onlyTheB64Part, &pub_key);
-
-            if (NULL == pub_key) {
-                LOG_ERROR("Key component is null");
-                return NOK;
-            } else {
-                LOG_TRACE("Key component OK");
-            }
-
-            LOG_TRACE_ARG("pub_key->subjectPublicKey length: %d", pub_key->subjectPublicKey->length);
-#ifdef LOG_BYTE_ARRARY_ON
-            for (int i = 0; i < (pub_key->subjectPublicKey->length); i++) {
-                LOG_TRACE_KEY_DATA_ARG("%#x ", pub_key->subjectPublicKey->data[i]);
-            }
-#endif
-
-            public_key_raw_from_keydata_2_with_gta_api =
-                mem_dup(pub_key->subjectPublicKey->data, (size_t)(pub_key->subjectPublicKey->length));
-            size_of_public_key_raw_from_keydata_2_with_gta_api = (size_t)(pub_key->subjectPublicKey->length);
-        }
-
-        if (OK != gta_context_close(h_ctx, &errinfo)) {
-            LOG_ERROR_ARG("GTA context close failed: %lu", errinfo);
-            return NOK;
-        }
     }
 
-    LOG_TRACE("Match - compare pub keys");
-
-    int ret = NOK;
-
-    if ((selection & OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS) != 0) {
-        LOG_TRACE("CASE DOMAIN_PARAMETERS: Compare EC_GROUP(s)");
+    /* We need a temporary copy of the key */
+    const unsigned char * pub_key_tmp = OPENSSL_memdup(pkey1->pub_key, pkey1->pub_key_size);
+    if (NULL == pub_key_tmp) {
+        LOG_ERROR("Memory allocation failed!");
+        return NOK;
     }
 
-    if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0) {
-        compare_ec_keydata(
-            selection,
-            public_key_raw_from_keydata_1,
-            size_of_public_key_raw_from_keydata_1,
-            public_key_raw_from_keydata_2_with_gta_api,
-            size_of_public_key_raw_from_keydata_2_with_gta_api,
-            &ret);
+    key1 = d2i_PublicKey(EVP_PKEY_EC, &key1, &pub_key_tmp, pkey1->pub_key_size);
+    if (NULL == key1) {
+        LOG_ERROR("Converting pkey1 to EVP_PKEY failed!");
+        return NOK;
     }
+    EVP_PKEY_CTX_free(pctx);
 
-    OPENSSL_clear_free(public_key_raw_from_keydata_1, size_of_public_key_raw_from_keydata_1);
-    OPENSSL_clear_free(public_key_raw_from_keydata_2_with_gta_api, size_of_public_key_raw_from_keydata_2_with_gta_api);
+    /* Call the helper function to compare the keys */
+    int res = base_keymgmt_match(key1, pkey2);
 
-    LOG_WARN_ARG("Method [%s], return with %d value", __func__, ret);
-    return ret;
+    EVP_PKEY_free(key1);
+    return res;
 }
 
 /**
@@ -460,9 +280,6 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
     LOG_TRACE_ARG("Selection = %d", selection);
 
     int result = NOK;
-    unsigned char * public_key_raw_from_keydata_2_with_gta_api = NULL;
-    size_t size_of_public_key_raw_from_keydata_2_with_gta_api = 0;
-
     GTA_PKEY * pkey = (GTA_PKEY *)keydata;
 
 #if LOG_LEVEL == LOG_LEVEL_TRACE
@@ -479,118 +296,68 @@ int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CA
         return NOK;
     }
 
+    EVP_PKEY * key = NULL;
+    if (!base_get_public_key(pkey, &key)) {
+        return NOK;
+    }
+
+    size_t public_key_len = 0;
+    char * public_key = NULL;
+    size_t group_name_len = 0;
+    char * group_name = NULL;
     OSSL_PARAM params[3] = {0};
     OSSL_PARAM * p = params;
     if ((selection & OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) != 0) {
         LOG_TRACE("OSSL_KEYMGMT_SELECT_ALL_PARAMETERS");
-        *p++ = OSSL_PARAM_construct_utf8_string(
-            OSSL_PKEY_PARAM_GROUP_NAME, (char *)OBJ_nid2sn(EC_curve_nist2nid("P-256")), 0);
+        /* Get group name */
+        if (!EVP_PKEY_get_group_name(key, NULL, 0, &group_name_len)) {
+            LOG_ERROR("EVP_PKEY_get_group_name failed");
+            return NOK;
+        }
+        LOG_TRACE_ARG("group_name_len: %zu", group_name_len);
+
+        group_name = OPENSSL_zalloc(group_name_len + 1);
+        if (NULL == group_name) {
+            LOG_ERROR("mamory allocation failed");
+            return NOK;
+        }
+
+        if (!EVP_PKEY_get_group_name(key, group_name, group_name_len + 1, NULL)) {
+            LOG_ERROR("EVP_PKEY_get_group_name failed");
+            return NOK;
+        }
+        LOG_TRACE_ARG("group_name: %s", group_name);
+        /* Return the group name */
+        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, group_name, 0);
     }
     if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
         LOG_TRACE("OSSL_KEYMGMT_SELECT_PUBLIC_KEY");
-
-        if (pkey->provctx == NULL) {
-            LOG_WARN("No context in keydata");
+        /* Get raw public key */
+        if (!EVP_PKEY_get_octet_string_param(key, OSSL_PKEY_PARAM_PUB_KEY, NULL, 0, &public_key_len)) {
+            LOG_ERROR("EVP_PKEY_get_octet_string_param failed");
             return NOK;
-        } else {
-            LOG_TRACE("We have a context in keydata");
         }
+        LOG_TRACE_ARG("public_key_len: %zu", public_key_len);
 
-        gta_errinfo_t errinfo = 0;
-        gta_context_handle_t h_ctx = GTA_HANDLE_INVALID;
-
-        LOG_TRACE("GTA context open");
-        LOG_TRACE_ARG("pkey->provctx->status = %d", pkey->provctx->status);
-
-        h_ctx = gta_context_open(pkey->provctx->h_inst, pkey->personality_name, pkey->profile_name, &errinfo);
-
-        if (NULL == h_ctx) {
-            LOG_WARN_ARG("GTA context open problem: %lu", errinfo);
-            return NOK;
-        } else {
-            LOG_TRACE("We have a GTA context");
-
-            ostream_to_buf_t ostream_data = {0};
-            unsigned char obuf[SIZE_OF_GTA_O_BUFFER] = {0};
-            size_t obuf_size = sizeof(obuf) - 1;
-
-            LOG_TRACE("Init output stream");
-            ostream_to_buf_init(&ostream_data, (char *)obuf, obuf_size);
-
-            LOG_TRACE("gta_personality_enroll(...)");
-            if (!gta_personality_enroll(h_ctx, (gtaio_ostream_t *)&ostream_data, &errinfo)) {
-                LOG_ERROR_ARG("gta_personality_enroll failed: %lu", errinfo);
-                return NOK;
-            }
-
-            LOG_TRACE_ARG("ostream_data.pos=%ld", (long)ostream_data.buf_pos);
-#ifdef LOG_B64_ON
-            LOG_TRACE_ARG("ostream_data.buf=%s", ostream_data.buf);
-#endif
-            LOG_TRACE("Convert");
-
-            const char * pub_key_begin = "-----BEGIN PUBLIC KEY-----\n";
-            const char * pub_key_end = "\n-----END PUBLIC KEY-----\n";
-
-            char * onlyTheB64Part = str_remove(ostream_data.buf, pub_key_begin);
-            onlyTheB64Part = str_remove(onlyTheB64Part, pub_key_end);
-            onlyTheB64Part = str_remove(onlyTheB64Part, "\n");
-#ifdef LOG_B64_ON
-            LOG_TRACE_ARG("B64 part: %s", onlyTheB64Part);
-#endif
-            SubjectPublicKeyInfo * pub_key = NULL;
-
-            unsigned char * pub_bytes_buffer;
-            size_t pub_bytes_length = sizeof(pub_bytes_buffer);
-
-            LOG_TRACE("Convert to raw");
-            base_64_decode(onlyTheB64Part, &pub_bytes_buffer, &pub_bytes_length);
-
-            LOG_TRACE_ARG("pub_bytes_length: %zu", pub_bytes_length);
-#ifdef LOG_BYTE_ARRARY_ON
-            for (int i = 0; i < pub_bytes_length; i++) {
-                LOG_TRACE_KEY_DATA_ARG("index: %d -> %#x \n", i, pub_bytes_buffer[i]);
-            }
-#endif
-
-            const unsigned char * const_pub_bytes_buffer = pub_bytes_buffer;
-
-            LOG_TRACE("Parse input");
-            pub_key = d2i_SubjectPublicKeyInfo(&pub_key, &const_pub_bytes_buffer, pub_bytes_length);
-
-            if (NULL == pub_key) {
-                LOG_ERROR("Key component is null");
-                return NOK;
-            } else {
-                LOG_TRACE("Key component OK");
-            }
-
-            LOG_TRACE_ARG("pub_key->subjectPublicKey length: %d", pub_key->subjectPublicKey->length);
-#ifdef LOG_BYTE_ARRARY_ON
-            for (int i = 0; i < (pub_key->subjectPublicKey->length); i++) {
-                LOG_TRACE_KEY_DATA_ARG("%#x ", pub_key->subjectPublicKey->data[i]);
-            }
-#endif
-
-            public_key_raw_from_keydata_2_with_gta_api =
-                mem_dup(pub_key->subjectPublicKey->data, (size_t)(pub_key->subjectPublicKey->length));
-            size_of_public_key_raw_from_keydata_2_with_gta_api = (size_t)(pub_key->subjectPublicKey->length);
-        }
-
-        if (OK != gta_context_close(h_ctx, &errinfo)) {
-            LOG_ERROR_ARG("GTA context close failed: %lu", errinfo);
+        public_key = OPENSSL_zalloc(public_key_len);
+        if (NULL == public_key) {
+            LOG_ERROR("mamory allocation failed");
             return NOK;
         }
 
-        *p++ = OSSL_PARAM_construct_octet_string(
-            OSSL_PKEY_PARAM_PUB_KEY,
-            public_key_raw_from_keydata_2_with_gta_api,
-            size_of_public_key_raw_from_keydata_2_with_gta_api);
+        if (!EVP_PKEY_get_octet_string_param(key, OSSL_PKEY_PARAM_PUB_KEY, public_key, public_key_len, NULL)) {
+            LOG_ERROR("EVP_PKEY_get_group_name failed");
+            return NOK;
+        }
+        /* Return the raw public key */
+        *p++ = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_PUB_KEY, public_key, public_key_len);
     }
     *p = OSSL_PARAM_construct_end();
 
+    LOG_TRACE("Call param_cb");
     result = param_cb(params, cbarg);
-    OPENSSL_clear_free(public_key_raw_from_keydata_2_with_gta_api, size_of_public_key_raw_from_keydata_2_with_gta_api);
+    OPENSSL_free(group_name);
+    OPENSSL_free(public_key);
     return result;
 }
 
