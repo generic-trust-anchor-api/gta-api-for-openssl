@@ -16,7 +16,7 @@ Current limitations in OpenSSL provider:
 * CA certificate currently not protected using GTA API.
 * No proper error handling.
 * Probably some memory leaks.
-* Currently supports only ECC (NIST P-256) and Dilithium2 (needs to be updated)
+* Currently supports only ECC (tested with NIST P-256) and Dilithium2 (needs to be updated)
 
 Additional feature:
 * Send certificate signing request with [RFC 4210](https://datatracker.ietf.org/doc/html/rfc4210) protocol.
