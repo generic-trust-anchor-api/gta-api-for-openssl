@@ -319,3 +319,94 @@ int gtaossl_provider_base_keymgmt_import(void * keydata, int selection, const OS
     LOG_TRACE_ARG("%s return 1", __func__);
     return OK;
 }
+
+/**
+ * The function reads requested params from keydata by converting the GTA_PKEY
+ * to an EVP_PKEY and use OpenSSL functions.
+ */
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    OSSL_PARAM * p = NULL;
+    EVP_PKEY * key = NULL;
+    const GTA_PKEY * pkey = (const GTA_PKEY *)keydata;
+
+    if (params == NULL) {
+        LOG_ERROR_ARG("%s -> params array is null", __func__);
+        return OK;
+    }
+
+    /* Convert GTA_PKEY to EVP_PKEY */
+    if (!base_get_public_key(pkey, &key)) {
+        LOG_ERROR("base_get_public_key failed");
+        return NOK;
+    }
+
+    /* This needs to be declared here */
+    size_t group_name_len = 0;
+    char * group_name = NULL;
+
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_GROUP_NAME);
+    if (p != NULL) {
+        /* Get group name */
+        if (!EVP_PKEY_get_group_name(key, NULL, 0, &group_name_len)) {
+            LOG_ERROR("EVP_PKEY_get_group_name failed");
+            return NOK;
+        }
+        LOG_TRACE_ARG("group_name_len: %zu", group_name_len);
+
+        group_name = OPENSSL_zalloc(group_name_len + 1);
+        if (NULL == group_name) {
+            LOG_ERROR("mamory allocation failed");
+            return NOK;
+        }
+
+        if (!EVP_PKEY_get_group_name(key, group_name, group_name_len + 1, NULL)) {
+            LOG_ERROR("EVP_PKEY_get_group_name failed");
+            return NOK;
+        }
+        LOG_TRACE_ARG("group_name: %s", group_name);
+
+        if (!OSSL_PARAM_set_utf8_string(p, group_name)) {
+            LOG_ERROR_ARG("%s -> error set parameter group name", __func__);
+            goto error;
+        }
+    }
+
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_BITS);
+    if (p != NULL) {
+        int bits = EVP_PKEY_get_bits(key);
+        LOG_TRACE_ARG("bits: %i", bits);
+
+        if (!OSSL_PARAM_set_int(p, bits)) {
+            LOG_ERROR_ARG("%s -> error set int parameter", __func__);
+            goto error;
+        }
+    }
+
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_SECURITY_BITS);
+    if (p != NULL) {
+        int security_bits = EVP_PKEY_get_security_bits(key);
+        LOG_TRACE_ARG("security_bits: %i", security_bits);
+        if (!OSSL_PARAM_set_int(p, security_bits)) {
+            LOG_ERROR_ARG("%s -> error set sec bit", __func__);
+            goto error;
+        }
+    }
+
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_MAX_SIZE);
+    if (p != NULL) {
+        int max_size = EVP_PKEY_get_size(key);
+        LOG_TRACE_ARG("max_size: %i", max_size);
+        if (!OSSL_PARAM_set_int(p, max_size)) {
+            LOG_ERROR_ARG("%s -> error  max size", __func__);
+            goto error;
+        }
+    }
+
+    OPENSSL_free(group_name);
+    return OK;
+error:
+    OPENSSL_free(group_name);
+    return NOK;
+}

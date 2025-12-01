@@ -23,65 +23,11 @@
 #include <openssl/params.h>
 #include <openssl/types.h>
 
-static OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_dilithium_keymgmt_get_params;
-
 static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_dilithium_keymgmt_gettable_params;
 
 static OSSL_FUNC_keymgmt_match_fn gtaossl_provider_dilithium_keymgmt_match;
 
 static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_dilithium_keymgmt_eximport_types;
-
-/**
- * The function should extract information data associated with the given keydata.
- *
- * @param[in] keydata: pointer of a key structure
- * @param[out] params: array of OSSL_PARAMs
- * @return OK = 1
- * @return NOK = 0
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
- */
-static int gtaossl_provider_dilithium_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    OSSL_PARAM * p = NULL;
-
-    /* Currently unused */
-    (void)keydata;
-
-    if (params == NULL) {
-        LOG_ERROR_ARG("%s -> params array is null", __func__);
-        return OK;
-    }
-
-    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_BITS);
-    if (p == NULL) {
-        LOG_WARN("bits ossl parameter is null");
-    }
-
-    if (p != NULL && !OSSL_PARAM_set_int(p, 128)) {
-        LOG_ERROR_ARG("%s -> error set int parameter", __func__);
-        goto error;
-    }
-
-    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_SECURITY_BITS);
-    if (p != NULL) {
-        int sec_bits;
-
-        /* We apply the same logic as OpenSSL does */
-        sec_bits = 128;
-
-        if (!OSSL_PARAM_set_int(p, sec_bits)) {
-            LOG_ERROR_ARG("%s -> error set sec bit", __func__);
-            goto error;
-        }
-    }
-
-    return OK;
-error:
-    return NOK;
-}
 
 /**
  * The function returns a descriptor of OSSL parameters.
@@ -197,7 +143,7 @@ const OSSL_DISPATCH dilithium_keymgmt_functions[] = {
     {OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))gtaossl_provider_base_keymgmt_new},
     {OSSL_FUNC_KEYMGMT_LOAD, (void (*)(void))gtaossl_provider_base_keymgmt_load},
     {OSSL_FUNC_KEYMGMT_FREE, (void (*)(void))gtaossl_provider_base_keymgmt_free},
-    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_dilithium_keymgmt_get_params},
+    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_get_params},
     {OSSL_FUNC_KEYMGMT_GETTABLE_PARAMS, (void (*)(void))gtaossl_provider_dilithium_keymgmt_gettable_params},
     {OSSL_FUNC_KEYMGMT_SET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_set_params},
     {OSSL_FUNC_KEYMGMT_SETTABLE_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_settable_params},

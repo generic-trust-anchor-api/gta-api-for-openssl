@@ -79,6 +79,20 @@ OSSL_FUNC_keymgmt_load_fn gtaossl_provider_base_keymgmt_load;
 OSSL_FUNC_keymgmt_free_fn gtaossl_provider_base_keymgmt_free;
 
 /**
+ * The function reads requested params from keydata by converting the GTA_PKEY
+ * to an EVP_PKEY and use OpenSSL functions.
+ *
+ * @param[in] keydata: pointer of a key structure
+ * @param[out] params: array of OSSL_PARAMs
+ * @return OK = 1
+ * @return NOK = 0
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ */
+OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_base_keymgmt_get_params;
+
+/**
  * The function updates information data associated with the given keydata.
  *
  * @param[in] params: array of OSSL_PARAMs
