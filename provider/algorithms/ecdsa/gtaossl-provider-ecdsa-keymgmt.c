@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -195,7 +195,7 @@ static const OSSL_PARAM * gtaossl_provider_ecdsa_keymgmt_eximport_types(int sele
         OSSL_PARAM_BN(OSSL_PKEY_PARAM_EC_PUB_Y, NULL, 0),
         OSSL_PARAM_END};
 
-    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) == 0) {
+    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) == 0) {
         LOG_TRACE("return ecc_public_key_types");
         return ecc_public_key_types;
     } else {
