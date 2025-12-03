@@ -20,7 +20,7 @@ extern "C" {
  */
 typedef struct {
     GTA_PROVIDER_CTX * provider_ctx;
-    unsigned char hash[32];
+    size_t max_sig_size;
     gta_context_handle_t h_ctx;
 } GTA_SIGNATURE_CTX;
 
@@ -86,32 +86,22 @@ OSSL_FUNC_signature_freectx_fn gtaossl_provider_base_signature_freectx;
 OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_base_signature_digest_init;
 
 /**
- * The function finalizes a signature operation but does not contain any implementation.
+ * The function does the actual signing.
  *
- * This function needs to defined to avoid the following error:
- * server side: 806B22632D7F0000:error:0A0000C7:SSL routines: tls_process_client_certificate:
- *        peer did not return a certificate:ssl/statem/statem_srvr.c:3725:
- * client side: 807B2FB4FA7F0000:error:0A00045C:SSL routines:ssl3_read_bytes:
- *              tlsv13 alert certificate required:ssl/record/rec_layer_s3.c:861:
- *              SSL alert number 116
+ * @param[in] ctx: signature context
+ * @param[in] sigsize: expected signature size in bytes (from OpenSSL)
+ * @param[in] data: input byte array
+ * @param[in] datalen: length of input byte array
+ * @param[out] sig: signature value byte array
+ * @param[out] siglen: length of the newly generated signature
+ *
+ * @return OK = 1
+ * @return NOK = 0
  *
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- *
- * @param[in] ctx: signature context (not used)
- * @param[in] sigsize: size of the signature in bytes (not used)
- * @param[out] sig: signature (not used)
- * @param[out] siglen: length of the signature (not used)
- *
- * @return NOK = 0
- *
- * The preprocessor-generated function signature:
- *
- * int gtaossl_provider_base_signature_digest_sign_final(void *ctx, unsigned char *sig, size_t *siglen, size_t sigsize)
  */
-#if 0
-OSSL_FUNC_signature_digest_sign_final_fn gtaossl_provider_base_signature_digest_sign_final;
-#endif
+OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_base_signature_digest_sign;
 
 /**
  * Configure the gettable OSSL parameters:
@@ -132,62 +122,15 @@ OSSL_FUNC_signature_digest_sign_final_fn gtaossl_provider_base_signature_digest_
 OSSL_FUNC_signature_gettable_ctx_params_fn gtaossl_provider_base_signature_gettable_ctx_params;
 
 /**
- * Configure the settable OSSL parameters:
- *
- * In this case, the name of the digest algorithm will be configured.
+ * Set ctx parameters.
  *
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
  *
  * @param[in] ctx: signature context (not used)
- * @param[in] provctx: provider context (not used)
- * @return array of OSSL_PARAMs
- *
- * The preprocessor-generated function signature:
- *
- * const OSSL_PARAM *gtaossl_provider_base_signature_settable_ctx_params(void *ctx, void *provctx)
+ * @return array of OSSL_PARAM
  */
-OSSL_FUNC_signature_settable_ctx_params_fn gtaossl_provider_base_signature_settable_ctx_params;
-
-/**
- * The function implements a "one-shot" digest sign operation,
- * calling the GTA API functions to delegate the signing operation.
- * The GTA API will call a special software provider in the current demo application.
- * Elliptic Curve and Dilithium 2 are supported by the software provider.
- *
- * The function contains the following steps:
- *
- * 1. Initializing the input and output buffer streams for the GTA functions.
- *
- * 2. Call the GTA API gta_authenticate_data_detached interface function.
- *    (signing operation)
- *
- * 3. Copy/convert the result from the stream to the returning object.
- *
- * 4. Close the streams and the GTA context.
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- *
- * @param[in] ctx: signature context
- * @param[in] sigsize: expected signature size in bytes (from OpenSSL)
- * @param[in] data: input byte array
- * @param[in] datalen: length of input byte array
- * @param[in] estimated_sig_size: expected signature size of a specific algorithm
- * @param[out] sig: signature value byte array
- * @param[out] siglen: length of the newly generated signature
- *
- * @return OK = 1
- * @return NOK = 0
- */
-int gtaossl_provider_base_signature_digest_sign(
-    void * ctx,
-    unsigned char * sig,
-    size_t * siglen,
-    size_t sigsize,
-    const unsigned char * data,
-    size_t datalen,
-    size_t estimated_sig_size);
+OSSL_FUNC_signature_set_ctx_params_fn gtaossl_provider_base_signature_set_ctx_params;
 
 #ifdef __cplusplus
 }

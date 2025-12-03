@@ -18,37 +18,8 @@
 #include <openssl/x509.h>
 #include <string.h>
 
-static OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_ecdsa_signature_digest_sign;
-
-/**
- * The function extends the base signature digest sign.
- * Estimated signature size (EC_ESTIMATED_SIG_SIZE) 72.
- *
- * @param[in] ctx: signature context
- * @param[in] sigsize: expected signature size in bytes (from OpenSSL)
- * @param[in] data: input byte array
- * @param[in] datalen: length of input byte array
- * @param[in] estimated_sig_size: expected signature size of a specific algorithm
- * @param[out] sig: signature value byte array
- * @param[out] siglen: length of the newly generated signature
- *
- * @return OK = 1
- * @return NOK = 0
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- */
-static int gtaossl_provider_ecdsa_signature_digest_sign(
-    void * ctx,
-    unsigned char * sig,
-    size_t * siglen,
-    size_t sigsize,
-    const unsigned char * data,
-    size_t datalen)
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    return gtaossl_provider_base_signature_digest_sign(ctx, sig, siglen, sigsize, data, datalen, EC_ESTIMATED_SIG_SIZE);
-}
+static OSSL_FUNC_signature_get_ctx_params_fn gtaossl_provider_ecdsa_signature_get_ctx_params;
+static OSSL_FUNC_signature_settable_ctx_params_fn gtaossl_provider_ecdsa_signature_settable_ctx_params;
 
 /**
  * Get context parameter.
@@ -80,11 +51,16 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
         unsigned char * aid = NULL;
         int aid_len = 0;
         int r = 0;
+        ASN1_OBJECT * oid = NULL;
 
-        ASN1_OBJECT * oid = OBJ_nid2obj(NID_ecdsa_with_SHA256);
-        X509_ALGOR * x509_algor;
-        if ((x509_algor = X509_ALGOR_new()) == NULL) {
-            LOG_DEBUG("X509 Algorithm Object creation failed");
+#if SUPPORTED_DIGEST == NID_sha256
+        oid = OBJ_nid2obj(NID_ecdsa_with_SHA256);
+#else
+#error Algorithm identifier for selected hash algorithm not implemented.
+#endif
+        X509_ALGOR * x509_algor = X509_ALGOR_new();
+        if (NULL == x509_algor) {
+            LOG_ERROR("X509 Algorithm Object creation failed");
             return NOK;
         }
 
@@ -105,37 +81,35 @@ static int gtaossl_provider_ecdsa_signature_get_ctx_params(void * ctx, OSSL_PARA
     return OK;
 }
 
-static int gtaossl_provider_ecdsa_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
+/**
+ * Configure the settable OSSL parameters:
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/3.2/man7/provider-signature/#description
+ *
+ * @param[in] ctx: signature context (not used)
+ * @param[in] provctx: provider context (not used)
+ * @return array of OSSL_PARAMs
+ */
+static const OSSL_PARAM * gtaossl_provider_ecdsa_signature_settable_ctx_params(void * ctx, void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
     /* Currently unused */
     (void)ctx;
-    (void)params;
+    (void)provctx;
 
-    return OK;
+    static OSSL_PARAM settable[] = {OSSL_PARAM_utf8_string(OSSL_SIGNATURE_PARAM_DIGEST, NULL, 0), OSSL_PARAM_END};
+    return settable;
 }
 
 const OSSL_DISPATCH ecdsa_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))gtaossl_provider_base_signature_newctx},
     {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))gtaossl_provider_base_signature_freectx},
-#if 0
-    {OSSL_FUNC_SIGNATURE_SIGN_INIT, NULL},
-    {OSSL_FUNC_SIGNATURE_SIGN, NULL},
-#endif
     {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_digest_init},
-#if 0
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_FINAL, NULL},
-#endif
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_ecdsa_signature_digest_sign},
-#if 0
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_INIT, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_FINAL, NULL},
-#endif
+    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_base_signature_digest_sign},
     {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_ecdsa_signature_get_ctx_params},
     {OSSL_FUNC_SIGNATURE_GETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_gettable_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_ecdsa_signature_set_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_settable_ctx_params},
+    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_set_ctx_params},
+    {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_ecdsa_signature_settable_ctx_params},
     {0, NULL}};

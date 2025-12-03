@@ -7,6 +7,8 @@
 #ifndef _GTAOSSL_PROVIDER_CONFIG_H_
 #define _GTAOSSL_PROVIDER_CONFIG_H_
 
+#include <openssl/rsa.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,6 +19,7 @@ extern "C" {
 #define NO_SIZE_INFO -1
 
 #define PREQS_EC "EC"
+#define PREQS_RSA "RSA"
 
 #define GTA_DATA_STRUCTURE_PARAM "GTA"
 
@@ -25,11 +28,10 @@ extern "C" {
 #define OQS_DILITHIUM_2 "dilithium2"
 #define OQS_DILITHIUM_2_OID "1.3.6.1.4.1.2.267.7.4.4"
 
-#define OQS_ESTIMATED_SIG_SIZE 2420
-#define OQS_SIG_BUFFER 4000
-
-#define EC_ESTIMATED_SIG_SIZE 72
-#define EC_SIG_BUFFER 1000
+/* Some defines which depend on the profile */
+#define SUPPORTED_DIGEST NID_sha256
+#define SUPPORTED_PAD_MODE RSA_PKCS1_PSS_PADDING
+#define SUPPORTED_PSS_SALTLEN "digest"
 
 #define GTA_READ_BUFFER 2048
 #define GTA_READ_BUFFER_FOR_CA_CERT 4096
