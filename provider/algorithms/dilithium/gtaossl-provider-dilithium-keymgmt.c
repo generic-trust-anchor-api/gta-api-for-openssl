@@ -24,9 +24,8 @@
 #include <openssl/types.h>
 
 static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_dilithium_keymgmt_gettable_params;
-
-static OSSL_FUNC_keymgmt_match_fn gtaossl_provider_dilithium_keymgmt_match;
-
+static OSSL_FUNC_keymgmt_import_fn gtaossl_provider_dilithium_keymgmt_import;
+static OSSL_FUNC_keymgmt_export_fn gtaossl_provider_dilithium_keymgmt_export;
 static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_dilithium_keymgmt_eximport_types;
 
 /**
@@ -56,61 +55,23 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_gettable_params(voi
 }
 
 /**
- * The function checks if the data subset indicated by selection
- * in keydata1 and keydata2 match.
- *
- * 1. The `keydata1` parameter is represented in Diltihium public key format,
- * which needs to be converted to a byte array.
- *
- * 2. The `keydata2` parameter is stored in the GTA context, which needs to be exported
- * and converted to a byte array.
- *
- * 3. In case of key pair selection, `keydata1` and `keydata2` need to be compared.
- * If they are equal, then return true.
+ * The key management import function imports data indicated
+ * by selection into keydata with values taken from the OSSL_PARAM(3) array params:
  *
  * More details can be found at the following URL:
  * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
  *
- * @param[in] keydata1: pointer to a key structure 1
- * @param[in] keydata2: pointer to a key structure 2
  * @param[in] selection: type of the selection
+ * @param[in] params: array of the OSSL parameters
+ * @param[out] keydata: pointer of a key structure
  * @return OK = 1
  * @return NOK = 0
+ *
  */
-static int gtaossl_provider_dilithium_keymgmt_match(const void * keydata1, const void * keydata2, int selection)
+static int gtaossl_provider_dilithium_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[])
 {
-    LOG_INFO("Dilithium key manager tries to compare the stored key with the input object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Selection = %d", selection);
-
-    if ((NULL == keydata1) || (NULL == keydata2)) {
-        LOG_ERROR("keydata1 and/or keydata2 is null");
-        return NOK;
-    }
-
-    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
-    const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
-
-    /* pkey1 needs to be converted to an EVP_PKEY */
-    /* We need a temporary copy of the key */
-    const unsigned char * pub_key_tmp = OPENSSL_memdup(pkey1->pub_key, pkey1->pub_key_size);
-    if (NULL == pub_key_tmp) {
-        LOG_ERROR("Memory allocation failed!");
-        return NOK;
-    }
-
-    /* todo: check key type e.g., EVP_PKEY_ML_DSA_44*/
-    EVP_PKEY * key1 = d2i_PublicKey(0, NULL, &pub_key_tmp, pkey1->pub_key_size);
-    if (NULL == key1) {
-        LOG_ERROR("Converting pkey1 to EVP_PKEY failed!");
-        return NOK;
-    }
-
-    /* Call the helper function to compare the keys */
-    int res = base_keymgmt_match(key1, pkey2);
-
-    EVP_PKEY_free(key1);
-    return res;
+    return (base_keymgmt_import(keydata, selection, params, "todo"));
 }
 
 /**
@@ -129,7 +90,7 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_eximport_types(int 
     static const OSSL_PARAM dilithium_public_key_types[] = {
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_PUB_KEY, NULL, 0), OSSL_PARAM_END};
 
-    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) == 0) {
+    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) == 0) {
         LOG_TRACE("return dilithium_public_key_types");
         return dilithium_public_key_types;
     } else {
@@ -148,8 +109,8 @@ const OSSL_DISPATCH dilithium_keymgmt_functions[] = {
     {OSSL_FUNC_KEYMGMT_SET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_set_params},
     {OSSL_FUNC_KEYMGMT_SETTABLE_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_settable_params},
     {OSSL_FUNC_KEYMGMT_HAS, (void (*)(void))gtaossl_provider_base_keymgmt_has},
-    {OSSL_FUNC_KEYMGMT_MATCH, (void (*)(void))gtaossl_provider_dilithium_keymgmt_match},
-    {OSSL_FUNC_KEYMGMT_IMPORT, (void (*)(void))gtaossl_provider_base_keymgmt_import},
+    {OSSL_FUNC_KEYMGMT_MATCH, (void (*)(void))gtaossl_provider_base_keymgmt_match},
+    {OSSL_FUNC_KEYMGMT_IMPORT, (void (*)(void))gtaossl_provider_dilithium_keymgmt_import},
     {OSSL_FUNC_KEYMGMT_IMPORT_TYPES, (void (*)(void))gtaossl_provider_dilithium_keymgmt_eximport_types},
     {OSSL_FUNC_KEYMGMT_EXPORT, NULL},
     {OSSL_FUNC_KEYMGMT_EXPORT_TYPES, (void (*)(void))gtaossl_provider_dilithium_keymgmt_eximport_types},

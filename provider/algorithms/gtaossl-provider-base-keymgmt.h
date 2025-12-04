@@ -148,6 +148,27 @@ OSSL_FUNC_keymgmt_settable_params_fn gtaossl_provider_base_keymgmt_settable_para
 OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
 
 /**
+ * The function checks if the data subset indicated by selection
+ * in keydata1 and keydata2 match.
+ *
+ * 1. The `keydata1` parameter is a GTA_PKEY with SubjectPublicKeyInfo
+ *
+ * 2. The `keydata2` parameter is a GTA_PKEY with personality name and profile name
+ *
+ * 3. The public keys are compared. If they are equal, then return true.
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ *
+ * @param[in] keydata1: pointer to a key structure 1
+ * @param[in] keydata2: pointer to a key structure 2
+ * @param[in] selection: type of the selection
+ * @return OK = 1
+ * @return NOK = 0
+ */
+OSSL_FUNC_keymgmt_match_fn gtaossl_provider_base_keymgmt_match;
+
+/**
  * Helper function to get the public key from given GTA API personality.
  *
  * @param[in] pkey: pointer to the GTA_PKEY to be converted
@@ -158,44 +179,10 @@ OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
 int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key);
 
 /**
- * Helper function to check if the key data of pkey1 and pkey2 match.
- *
- * 1. The `pkey1` parameter is an EVP_PKEY.
- *
- * 2. The `pkey2` parameter is a GTA_PKEY. This function retrievs the public key
- *    and converts it into a EVP_PKEY.
- *
- * @param[in] pkey1: pointer to an EVP_PKEY
- * @param[in] pkey2: pointer to a GTA_PKEY
- * @return OK = 1
- * @return NOK = 0
- */
-int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2);
-
-/**
  * The base key management import function imports data indicated
- * by selection into keydata with values taken from the OSSL_PARAM(3) array params:
- *
- * 1. In case of a public key, OSSL_PKEY_PARAM_PUB_KEY needs to be located and
- * copied into the GTA_PKEY structure object.
- *
- * 2. In case of key parameters selection, OSSL_PKEY_PARAM_GROUP_NAME can be located
- * and show in the log, because of debug purposes.
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
- *
- * @param[in] selection: type of the selection
- * @param[in] params: array of the OSSL parameters
- * @param[out] keydata: pointer of a key structure
- * @return OK = 1
- * @return NOK = 0
- *
- * The preprocessor-generated function signature:
- *
- * int gtaossl_provider_base_keymgmt_import(void *keydata, int selection, const OSSL_PARAM params[])
+ * by selection into keydata with values taken from the OSSL_PARAM(3) array params
  */
-OSSL_FUNC_keymgmt_import_fn gtaossl_provider_base_keymgmt_import;
+int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[], const char * name);
 
 #ifdef __cplusplus
 }
