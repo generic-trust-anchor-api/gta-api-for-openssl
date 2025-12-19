@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -103,32 +103,6 @@ extern "C" {
 #define LOG_ERROR_ARG(fmt, ...) ((void)0)
 #define LOG_ERROR(fmt) ((void)0)
 #endif
-
-/**
- * Allocate buffer and copy the string input into it.
- *
- * https://stackoverflow.com/questions/13663617/why-is-there-a-strdup-function-but-not-memdup-function-in-the-standard
- */
-void * mem_dup(const void * mem, size_t size);
-
-/**
- * Remove a given sub string from a C string.
- *
- * https://stackoverflow.com/questions/47116974/remove-a-substring-from-a-string-in-c
- */
-char * str_remove(char * str, const char * sub);
-
-/**
- * Base64 decoder
- *
- * @param[in] b64message: encoded message
- * @param buffer: decoded data
- * @param length: length of the decoded data
- *
- * @return OK = 1
- * @return NOK = 0
- */
-int base_64_decode(const char * b64message, unsigned char ** buffer, size_t * length);
 
 /**
  * Base64 encoder
