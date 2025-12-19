@@ -48,6 +48,8 @@ function teardown
 source "$DIR/test_tls_default.sh"
 # shellcheck source=/dev/null
 source "$DIR/test_tls_ec.sh"
+# shellcheck source=/dev/null
+source "$DIR/test_tls_rsa.sh"
 # Post quantum support is deactivated
 # shellcheck source=/dev/null
 # source "$DIR/test_tls_dilithium.sh"
