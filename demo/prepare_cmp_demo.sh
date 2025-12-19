@@ -4,6 +4,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+if [[ "$1" = "ec" ]]; then
+  echo "Generate EC key materials..."
+  PROFILE="ec"
+elif [[ "$1" = "rsa" ]]; then
+  echo "Generate RSA key materials..."
+  PROFILE="rsa"
+else
+  echo "Set EC key materials as default..."
+  PROFILE="ec"
+fi
+
 export GTA_API_STATE_DIR="./client/serialized_data"
 export GTA_STATE_DIRECTORY=$GTA_API_STATE_DIR
 export CMP_CREDENTIAL_DIR=./cmp/cmp_example
@@ -51,5 +62,13 @@ echo ""
 echo "Create identifier"
 gta-cli identifier_assign --id_type=ch.iec.30168.identifier.mac_addr --id_val=DE-AD-BE-EF-FE-ED
 
-echo "Create key GTA API personality for CMP"
-gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=gta-cli --prof=com.github.generic-trust-anchor-api.basic.ec
+if [[ "$PROFILE" = "ec" ]]; then
+    echo "Create EC GTA API personality for CMP"
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=gta-cli --prof=com.github.generic-trust-anchor-api.basic.ec
+fi
+
+if [[ "$PROFILE" = "rsa" ]]; then
+    echo "Create RSA GTA API personality for CMP"
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=gta-cli --prof=com.github.generic-trust-anchor-api.basic.rsa
+fi
+
