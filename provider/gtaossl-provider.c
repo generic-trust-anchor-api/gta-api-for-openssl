@@ -24,6 +24,13 @@
 #error "SERIALIZATION_FOLDER not defined!"
 #endif
 
+#define MAXLEN_PROFILE 160
+
+/* List of all profiles supported by gta-api-for-openssl */
+static char profiles_to_register[][MAXLEN_PROFILE] = {
+    "com.github.generic-trust-anchor-api.basic.tls",
+    "com.github.generic-trust-anchor-api.basic.signature"};
+
 extern const struct gta_function_list_t * gta_sw_provider_init(
     gta_context_handle_t,
     gtaio_istream_t *,
@@ -31,6 +38,22 @@ extern const struct gta_function_list_t * gta_sw_provider_init(
     void **,
     void (**)(void *),
     gta_errinfo_t *);
+
+bool register_provider(
+    gta_instance_handle_t h_inst,
+    gtaio_istream_t * init_config,
+    gta_profile_name_t profile,
+    gta_errinfo_t * p_errinfo)
+{
+    struct gta_provider_info_t provider_info = {
+        .version = 0,
+        .type = GTA_PROVIDER_INFO_CALLBACK,
+        .provider_init = gta_sw_provider_init,
+        .provider_init_config = init_config,
+        .profile_info = {.profile_name = profile, .protection_properties = {0}, .priority = 0}};
+
+    return gta_register_provider(h_inst, &provider_info, p_errinfo);
+}
 
 /*----------------Function collections for TLS Handshake-----------------*/
 
@@ -53,6 +76,14 @@ extern const OSSL_DISPATCH ecdsa_signature_functions[];
 extern const OSSL_DISPATCH ecdsa_keymgmt_functions[];
 
 extern const OSSL_DISPATCH gta_to_ecdsa_decoder_functions[];
+
+/*---------------------------RSA-----------------------------------------*/
+
+extern const OSSL_DISPATCH rsa_signature_functions[];
+
+extern const OSSL_DISPATCH rsa_keymgmt_functions[];
+
+extern const OSSL_DISPATCH gta_to_rsa_decoder_functions[];
 
 /*------------------Required OSSL provider functions----------------------*/
 
@@ -212,7 +243,12 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
  * Signature functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
+#ifdef EC_ON
     {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
+#endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_signature_functions},
 #endif
@@ -224,6 +260,9 @@ static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
 static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
 #ifdef EC_ON
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_keymgmt_functions},
@@ -239,6 +278,12 @@ static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta,input=der,structure=GTA", gta_to_ecdsa_decoder_functions},
     //{ "EC:1.2.840.10045.2.1", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ec_decoder_functions},
     {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta,input=der,structure=GTA", gta_to_rsa_decoder_functions},
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
+     "provider=gta,input=der,structure=PrivateKeyInfo",
+     gta_to_rsa_decoder_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_dilithium_decoder_functions},
@@ -683,16 +728,6 @@ int OSSL_provider_init(
 
     istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
 
-    struct gta_provider_info_t provider_info = {
-        .version = 0,
-        .type = GTA_PROVIDER_INFO_CALLBACK,
-        .provider_init = gta_sw_provider_init,
-        .provider_init_config = (gtaio_istream_t *)&init_config,
-        .profile_info = {
-            .profile_name = "com.github.generic-trust-anchor-api.basic.signature",
-            .protection_properties = {0},
-            .priority = 0}};
-
     LOG_TRACE("Calling gta_instance_init");
     prov->h_inst = gta_instance_init(&inst_params, &errinfo);
     if (NULL == prov->h_inst) {
@@ -700,10 +735,13 @@ int OSSL_provider_init(
         return clean_up(prov, ret, &errinfo);
     }
 
-    LOG_TRACE("Calling gta_register_provider");
-    if (1 != gta_register_provider(prov->h_inst, &provider_info, &errinfo)) {
-        LOG_ERROR("The gta_register_provider failed");
-        return clean_up(prov, ret, &errinfo);
+    LOG_TRACE("Calling register_provider");
+    /* register profiles for provider */
+    for (size_t i = 0; i < (sizeof(profiles_to_register) / sizeof(profiles_to_register[0])); ++i) {
+        if (!register_provider(prov->h_inst, (gtaio_istream_t *)&init_config, profiles_to_register[i], &errinfo)) {
+            LOG_ERROR("register_provider failed");
+            return clean_up(prov, ret, &errinfo);
+        }
     }
 
     if ((prov->libctx = OSSL_LIB_CTX_new_from_dispatch(handle, orig_in)) == NULL) {
