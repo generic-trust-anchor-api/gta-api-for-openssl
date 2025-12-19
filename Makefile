@@ -11,16 +11,17 @@ SERIALIZED_DATA_DIR ?= $(CLIENT_DIR)/serialized_data
 INTEGRATION_TEST_DIR= ./tests/integration
 
 # Enable EC: -DEC_ON
+# Enable RSA: -DRSA_ON
 # Enable Dilithium: -DDILITHIUM_ON
 # Enable log all byte array: -DLOG_BYTE_ARRARY_ON
 # Enable log all base 64 string: -DLOG_B64_ON
 # Enable log all base 64 string: -DLOG_FOR_CYCLE_ON
-CFLAGS = -Wall -g -DEC_ON -DLOG_LEVEL=0 -DLOG_B64_ON -DSERIALIZATION_FOLDER="\""$(SERIALIZED_DATA_DIR)"\""
+CFLAGS = -Wall -g -DEC_ON -DRSA_ON -DLOG_LEVEL=0 -DLOG_B64_ON -DSERIALIZATION_FOLDER="\""$(SERIALIZED_DATA_DIR)"\""
 
 # GTA SW Provider - merged static lib
 LDFLAGS = -Wall -g -L./deps/gta_api/lib_latest
 
-LIBSRCS = $(wildcard provider/*.c provider/stream/*.c provider/logger/*.c provider/algorithms/*.c provider/algorithms/dilithium/*.c provider/algorithms/ecdsa/*.c )
+LIBSRCS = $(wildcard provider/*.c provider/stream/*.c provider/logger/*.c provider/algorithms/*.c provider/algorithms/dilithium/*.c provider/algorithms/ecdsa/*.c provider/algorithms/rsa/*.c )
 LIBOBJS = $(addprefix $(BUILDDIR)/,$(patsubst %.c,%.o,$(LIBSRCS)))
 
 .PHONY: all

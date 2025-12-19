@@ -77,6 +77,14 @@ extern const OSSL_DISPATCH ecdsa_keymgmt_functions[];
 
 extern const OSSL_DISPATCH gta_to_ecdsa_decoder_functions[];
 
+/*---------------------------RSA-----------------------------------------*/
+
+extern const OSSL_DISPATCH rsa_signature_functions[];
+
+extern const OSSL_DISPATCH rsa_keymgmt_functions[];
+
+extern const OSSL_DISPATCH gta_to_rsa_decoder_functions[];
+
 /*------------------Required OSSL provider functions----------------------*/
 
 static OSSL_FUNC_core_gettable_params_fn * core_gettable_params = NULL;
@@ -235,7 +243,12 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
  * Signature functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
+#ifdef EC_ON
     {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
+#endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_signature_functions},
 #endif
@@ -247,6 +260,9 @@ static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
 static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
 #ifdef EC_ON
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_keymgmt_functions},
@@ -262,6 +278,12 @@ static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta,input=der,structure=GTA", gta_to_ecdsa_decoder_functions},
     //{ "EC:1.2.840.10045.2.1", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ec_decoder_functions},
     {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta,input=der,structure=GTA", gta_to_rsa_decoder_functions},
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
+     "provider=gta,input=der,structure=PrivateKeyInfo",
+     gta_to_rsa_decoder_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_dilithium_decoder_functions},
