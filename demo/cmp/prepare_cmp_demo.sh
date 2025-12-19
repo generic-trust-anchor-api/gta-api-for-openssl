@@ -36,6 +36,17 @@ else
     mkdir -p "$DEMO_CREDENTIAL_DIR"
 fi
 
+if [[ "${1:-}" = "ec" ]]; then
+  echo "Generate EC key materials..."
+  PROFILE="ec"
+elif [[ "${1:-}" = "rsa" ]]; then
+  echo "Generate RSA key materials..."
+  PROFILE="rsa"
+else
+  echo "Set EC key materials as default..."
+  PROFILE="ec"
+fi
+
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -f "$DEMO_CREDENTIAL_DIR/"*
 
@@ -71,8 +82,15 @@ echo ""
 echo "Create identifier"
 gta-cli identifier_assign --id_type=ch.iec.30168.identifier.mac_addr --id_val=DE-AD-BE-EF-FE-ED
 
-echo "Create key GTA API personality for CMP"
-gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.ec
+if [[ "$PROFILE" = "ec" ]]; then
+    echo "Create EC GTA API personality for CMP"
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.ec
+fi
+
+if [[ "$PROFILE" = "rsa" ]]; then
+    echo "Create RSA GTA API personality for CMP"
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.rsa
+fi
 
 # Note that the certs need to be DER encoded
 echo "Add trusted certificates to personality"
