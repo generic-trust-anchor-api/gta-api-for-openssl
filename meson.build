@@ -1,5 +1,5 @@
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -49,6 +49,11 @@ add_project_arguments(GTA_STATE_DIRECTORY_c_args, language: 'c')
 # Activate elliptic curve support
 if get_option('ec_on')
    add_project_arguments('-DEC_ON', language: 'c')
+endif
+
+# Activate RSA support
+if get_option('rsa_on')
+   add_project_arguments('-DRSA_ON', language: 'c')
 endif
 
 # Activate dilithium (pqc) support
