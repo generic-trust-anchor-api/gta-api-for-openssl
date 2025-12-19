@@ -204,7 +204,8 @@ static void create_key_object_from_der_data(GTA_PKEY * pKey, unsigned char * der
 
     if (pub_key != NULL) {
         LOG_TRACE("Push content to the public key data");
-        pKey->pub_key = (char *)mem_dup(pub_key->public_key_data->data, (size_t)(pub_key->public_key_data->length));
+        pKey->pub_key =
+            (char *)OPENSSL_memdup(pub_key->public_key_data->data, (size_t)(pub_key->public_key_data->length));
         pKey->pub_key_size = (size_t)(pub_key->public_key_data->length);
     } else {
         LOG_WARN("Der object parsing problem");

@@ -28,7 +28,11 @@ extern "C" {
 #define OQS_DILITHIUM_2 "dilithium2"
 #define OQS_DILITHIUM_2_OID "1.3.6.1.4.1.2.267.7.4.4"
 
-/* Some defines which depend on the profile */
+/**
+ * Some defines which depend on the profile
+ *
+ * Double-check with gtaossl_provider_*_signature_get_ctx_params
+ */
 #define SUPPORTED_DIGEST NID_sha256
 #define SUPPORTED_PAD_MODE RSA_PKCS1_PSS_PADDING
 #define SUPPORTED_PSS_SALTLEN "digest"
@@ -37,13 +41,9 @@ extern "C" {
 #define GTA_READ_BUFFER_FOR_CA_CERT 4096
 #define MAXLEN_ATTRIBUTE_NAME 1000
 #define SIZE_OF_GTA_O_BUFFER 1000
-#define SIZE_OF_GTA_O_BUFFER_FOR_DILITHIUM 4000
 
 #define GTA_KEY_TYPE_ATTRIBUTE "com.github.generic-trust-anchor-api.keytype.openssl"
 #define GTA_TRUSTED_CERTIFICATE_TYPE "ch.iec.30168.trustlist.certificate.trusted.x509v3"
-
-#define PUB_KEY_BEGIN_TAG "-----BEGIN PUBLIC KEY-----\n"
-#define PUB_KEY_END_TAG "\n-----END PUBLIC KEY-----\n"
 
 #ifdef __cplusplus
 }
