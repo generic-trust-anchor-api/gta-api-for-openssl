@@ -37,6 +37,9 @@ fi
 if [[ "$1" = "ec" ]]; then
   echo "Generate EC key materials..."
   PROFILE="ec"
+elif [[ "$1" = "rsa" ]]; then
+  echo "Generate RSA key materials..."
+  PROFILE="rsa"
 elif [[ "$1" = "dilithium" ]]; then
   echo "Generate PQ key materials..."
   PROFILE="dilithium"
@@ -97,6 +100,14 @@ if [[ "$PROFILE" = "ec" ]]; then
     openssl x509 -req -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365 -CAcreateserial -in "$_WD/server/csr.pem" -out "$_WD/server/cert.pem"
 fi 
 
+if [[ "$PROFILE" = "rsa" ]]; then
+    echo "Create CA credentials"
+    openssl req -x509 -new -newkey rsa:2048 -keyout "$_WD/CA/CAkey.pem" -out "$_WD/CA/CAcert.pem" -nodes -subj "/CN=Demo CA" -days 365
+
+    echo "Create server credentials"
+    openssl req -newkey rsa:2048 -keyout "$_WD/server/key.pem" -out "$_WD/server/csr.pem" -nodes -subj "/CN=Demo Server"
+    openssl x509 -req -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365 -CAcreateserial -in "$_WD/server/csr.pem" -out "$_WD/server/cert.pem"
+fi
 
 if [[ "$PROFILE" = "dilithium" ]]; then
     SIG_ALG="dilithium"
@@ -127,6 +138,11 @@ echo "Create GTA personality for client"
 if [[ "$PROFILE" = "ec" ]]; then
     echo "gta_personality_create ec"
     gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.ec
+fi
+
+if [[ "$PROFILE" = "rsa" ]]; then
+    echo "gta_personality_create rsa"
+    gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.rsa
 fi
 
 if [[ "$PROFILE" = "dilithium" ]]; then
