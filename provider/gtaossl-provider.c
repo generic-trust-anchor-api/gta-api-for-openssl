@@ -24,6 +24,13 @@
 #error "SERIALIZATION_FOLDER not defined!"
 #endif
 
+#define MAXLEN_PROFILE 160
+
+/* List of all profiles supported by gta-api-for-openssl */
+static char profiles_to_register[][MAXLEN_PROFILE] = {
+    "com.github.generic-trust-anchor-api.basic.tls",
+    "com.github.generic-trust-anchor-api.basic.signature"};
+
 extern const struct gta_function_list_t * gta_sw_provider_init(
     gta_context_handle_t,
     gtaio_istream_t *,
@@ -31,6 +38,22 @@ extern const struct gta_function_list_t * gta_sw_provider_init(
     void **,
     void (**)(void *),
     gta_errinfo_t *);
+
+bool register_provider(
+    gta_instance_handle_t h_inst,
+    gtaio_istream_t * init_config,
+    gta_profile_name_t profile,
+    gta_errinfo_t * p_errinfo)
+{
+    struct gta_provider_info_t provider_info = {
+        .version = 0,
+        .type = GTA_PROVIDER_INFO_CALLBACK,
+        .provider_init = gta_sw_provider_init,
+        .provider_init_config = init_config,
+        .profile_info = {.profile_name = profile, .protection_properties = {0}, .priority = 0}};
+
+    return gta_register_provider(h_inst, &provider_info, p_errinfo);
+}
 
 /*----------------Function collections for TLS Handshake-----------------*/
 
@@ -683,16 +706,6 @@ int OSSL_provider_init(
 
     istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
 
-    struct gta_provider_info_t provider_info = {
-        .version = 0,
-        .type = GTA_PROVIDER_INFO_CALLBACK,
-        .provider_init = gta_sw_provider_init,
-        .provider_init_config = (gtaio_istream_t *)&init_config,
-        .profile_info = {
-            .profile_name = "com.github.generic-trust-anchor-api.basic.signature",
-            .protection_properties = {0},
-            .priority = 0}};
-
     LOG_TRACE("Calling gta_instance_init");
     prov->h_inst = gta_instance_init(&inst_params, &errinfo);
     if (NULL == prov->h_inst) {
@@ -700,10 +713,13 @@ int OSSL_provider_init(
         return clean_up(prov, ret, &errinfo);
     }
 
-    LOG_TRACE("Calling gta_register_provider");
-    if (1 != gta_register_provider(prov->h_inst, &provider_info, &errinfo)) {
-        LOG_ERROR("The gta_register_provider failed");
-        return clean_up(prov, ret, &errinfo);
+    LOG_TRACE("Calling register_provider");
+    /* register profiles for provider */
+    for (size_t i = 0; i < (sizeof(profiles_to_register) / sizeof(profiles_to_register[0])); ++i) {
+        if (!register_provider(prov->h_inst, (gtaio_istream_t *)&init_config, profiles_to_register[i], &errinfo)) {
+            LOG_ERROR("register_provider failed");
+            return clean_up(prov, ret, &errinfo);
+        }
     }
 
     if ((prov->libctx = OSSL_LIB_CTX_new_from_dispatch(handle, orig_in)) == NULL) {
