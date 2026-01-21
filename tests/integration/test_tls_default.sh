@@ -4,16 +4,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-function test_ec_parameter_during_the_init
+function test_no_parameter_during_the_init
 {
-    echo "Test the ec value"
+    echo "Test the no parameter case"
     echo "Prepare test"
-    (cd demo && ./prepare_demo.sh ec &>/dev/null)
+    (cd demo/tls && ./prepare_tls_demo.sh &>/dev/null)
     echo "Start server"
-    (cd demo/server && timeout 10s ./start_server.sh &>/dev/null)&
+    (cd demo/tls && timeout 10s ./start_server.sh &>/dev/null)&
     sleep 2
     
-    cd demo/client || exit 
+    cd demo/tls || exit 
     echo "Start client"
     run ./start_client.sh
     sleep 1

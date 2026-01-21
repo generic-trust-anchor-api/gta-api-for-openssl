@@ -10,6 +10,7 @@
 #include "config/gtaossl-provider-config.h"
 #include "logger/gtaossl-provider-logger.h"
 #include "stream/streams.h"
+#include <errno.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
@@ -18,11 +19,10 @@
 #include <openssl/prov_ssl.h>
 #include <openssl/provider.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
-#if !defined(SERIALIZATION_FOLDER)
-#error "SERIALIZATION_FOLDER not defined!"
-#endif
+#include <sys/stat.h>
+#include <unistd.h>
 
 extern const struct gta_function_list_t * gta_sw_provider_init(
     gta_context_handle_t,
@@ -61,6 +61,13 @@ static OSSL_FUNC_core_get_params_fn * core_get_params = NULL;
 static OSSL_FUNC_core_new_error_fn * core_new_error = NULL;
 static OSSL_FUNC_core_set_error_debug_fn * core_set_error_debug = NULL;
 static OSSL_FUNC_core_vset_error_fn * core_vset_error = NULL;
+
+const char * env_name_of_ser_folder = "GTA_STATE_DIRECTORY";
+/*
+ * Fallback in case the environment variable is not set. This default
+ * directory is defined as meson option at build time.
+ */
+const char * default_value_of_ser_folder = GTA_STATE_DIRECTORY;
 
 /*-------------------------------------------------------------------------*/
 
@@ -365,16 +372,14 @@ static OQS_SIGALG_CONSTANTS oqs_sigalg_list[] = {
 };
 
 #define OQS_SIGALG_ENTRY(tlsname, realname, algorithm, oid, idx)                                                       \
-    {                                                                                                                  \
-        OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                      \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                       \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),  \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),  \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),          \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),          \
-            OSSL_PARAM_END                                                                                             \
-    }
+    {OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                         \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                              \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                       \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),         \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),         \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),                 \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),                 \
+     OSSL_PARAM_END}
 
 static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
     OQS_SIGALG_ENTRY(dilithium2, dilithium2, dilithium2, OQS_DILITHIUM_2_OID, 0),
@@ -681,7 +686,56 @@ int OSSL_provider_init(
         },
         NULL};
 
-    istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
+    const char * value = getenv(env_name_of_ser_folder);
+
+    if (value == NULL || value[0] == '\0') {
+
+        LOG_INFO("Use the default configuration");
+        if (setenv(env_name_of_ser_folder, default_value_of_ser_folder, 1) != 0) {
+            LOG_ERROR("Not able to use the default configuration.");
+            return NOK;
+        }
+
+        value = getenv(env_name_of_ser_folder);
+
+    } else {
+        LOG_INFO("Use custom configuration");
+    }
+
+    LOG_TRACE("Validate configuration directory path");
+    if (value == NULL || value[0] == '\0') {
+        LOG_ERROR("Configuration problem: path is empty");
+        return NOK;
+    }
+
+    struct stat st;
+    if (lstat(value, &st) == NO_FILE_STAT_INFO) {
+        LOG_ERROR("Configuration problem: path does not exist");
+        return NOK;
+    }
+
+    if (S_ISLNK(st.st_mode)) {
+        LOG_ERROR("Configuration problem: symlinks are not allowed");
+        return NOK;
+    }
+
+    if (!S_ISDIR(st.st_mode)) {
+        LOG_ERROR("Configuration problem: path is not a directory");
+        return NOK;
+    }
+
+    char resolved[PATH_MAX];
+    if (realpath(value, resolved) == NULL) {
+        LOG_ERROR("Configuration problem: not able to resolve the path");
+        return NOK;
+    }
+
+    if (access(resolved, X_OK) != 0) {
+        LOG_ERROR("Configuration problem: no access");
+        return NOK;
+    }
+
+    istream_from_buf_init(&init_config, resolved, sizeof(resolved) - 1);
 
     struct gta_provider_info_t provider_info = {
         .version = 0,
