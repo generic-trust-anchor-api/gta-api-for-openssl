@@ -12,7 +12,7 @@ INTEGRATION_TEST_DIR= ./tests/integration
 
 # Enable EC: -DEC_ON
 # Enable Dilithium: -DDILITHIUM_ON
-# Enable log all byte array: -DLOG_BYTE_ARRARY_ON
+# Enable log all byte array: -DLOG_BYTE_ARRAY_ON
 # Enable log all base 64 string: -DLOG_B64_ON
 # Enable log all base 64 string: -DLOG_FOR_CYCLE_ON
 CFLAGS = -Wall -g -DEC_ON -DLOG_LEVEL=0 -DLOG_B64_ON -DSERIALIZATION_FOLDER="\""$(SERIALIZED_DATA_DIR)"\""
