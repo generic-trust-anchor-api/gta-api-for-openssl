@@ -59,14 +59,22 @@ jobs:
           unzip deps/gta_api/lib_latest/libgta_sw_provider_merged.zip -d deps/gta_api/lib_latest
       - name: Build and install gta-api-for-openssl
         run: |
-          make
-          sudo make install
+          meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+          ninja -C build
+          sudo ninja -C build install
           sudo ldconfig
       - name: Test gta-api-for-openssl
         env:
           TERM: xterm
         run: |
-          make test
+          ninja -C build test
+      - name: Upload test logs as artifact
+        if: failure()  
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: /home/runner/work/gta-api-for-openssl/gta-api-for-openssl/build/meson-logs/testlog.txt
+          retention-days: 7
 
   style-check:
     runs-on: ubuntu-latest
