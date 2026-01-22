@@ -86,7 +86,7 @@ if get_option('log_for_cycle_on')
 endif
 
 # Select build type [release | debug]
-build_type = get_option('build')
+build_type = get_option('build_type')
 
 if build_type == 'release'
 add_project_arguments(
@@ -112,6 +112,7 @@ openssl_dep = dependency('openssl', required: true)
 deps += openssl_dep
 
 # Post quantum support is deactivated
+dilithium_on = get_option('dilithium_on')
 if dilithium_on
 
    # 2. Open Quantum Safe low level library (liboqs) (build dependency | static library)
@@ -129,18 +130,33 @@ gta_dep = dependency('libgta', required: true)
 deps += gta_dep
 
 # 5. GTA API SW Provider (normalized, the file needs to be stored manually in a subfolder)
-gta_sw_provider_normalized_dep = cc.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
+gta_lib_dir = join_paths(meson.project_source_root(), 'deps', 'gta_api', 'lib_latest')
+gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
 deps += gta_sw_provider_normalized_dep
 
 # 6. Mathematical library
-dep_math = dependency('libm', required: true) 
+dep_math = dependency('libm', required: false) 
 deps += dep_math
 
 # 7. Test dependency
 bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test_tools/master/bash_test_tools'
 
 # Define the sources
-provider_src = fs.glob('provider/**/*.c')
+py = find_program('python3')
+code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
+res = run_command(py, '-c', code)
+
+if res.returncode() != 0
+  error('Python glob sikertelen: @0@'.format(res.stderr()))
+endif
+
+provider_src = []
+out = res.stdout().strip()
+if out != ''
+  provider_src = out.split('\n')
+endif
+
+message('Identified source files: ' + out)
 
 # Shared library configuration
 # The output is 'gta.so' (not 'libgta.so'), because name_prefix is empty 
@@ -160,7 +176,7 @@ run_target('install-module',
 )
 
 # Uninstall
-run_target('uninstall',
+run_target('uninstall-module',
   command: ['sh', '-c', 'rm -f "@0@/gta.so"'.format(openssl_modules_dir)]
 )
 
@@ -181,18 +197,43 @@ run_target('remove',
 )
 
 # Prepare test tools
-fetch_test_tools = run_target('fetch_test_tools',
-  command: ['sh', '-c',
+fetch_test_tools = custom_target(
+  'fetch_test_tools',
+  output: 'bash_test_tools',   # kell legalább 1 output
+  command: [
+    'sh', '-c',
     'mkdir -p "@0@/tools" && ' +
     'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
     'chmod +x "@0@/tools/bash_test_tools"'
-      .format(integration_test_dir,
-       bash_test_tool_url)
+      .format(integration_test_dir, 
+              bash_test_tool_url)
   ]
 )
 
 # Run test
-run_target('test',
+run_target('run-test',
   command: ['sh', '-c', 'cd "@0@" && ./run_tests.sh'.format(integration_test_dir)],
   depends: [fetch_test_tools]
 )
+
+# Meson popular commands:
+# 1) Create build folder and setup project:
+# meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+
+# 2) Build project:
+# meson compile -C build
+
+# 3) Install provider (gta.so copy to OPENSSL_MODULES_DIR):
+# sudo meson compile -C build install-module
+
+# 4) Run tests
+# meson compile -C build run-test
+
+# 5) Remove provider (delete gta.so from OPENSSL_MODULES_DIR):
+# meson compile -C build uninstall-module
+
+# 6) Clean up test and demo project:
+# meson compile -C build remove
+
+# Clean build directory:
+# meson setup --wipe build
