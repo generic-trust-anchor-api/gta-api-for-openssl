@@ -44,6 +44,8 @@ function teardown
 source "$DIR/test_no_parameter_during_the_init.sh"
 # shellcheck source=/dev/null
 source "$DIR/test_ec_parameter_during_the_init.sh"
+# Post quantum support is deactivated
+# shellcheck source=/dev/null
 # source "$DIR/test_dilithium_parameter_during_the_init.sh"
 # shellcheck source=/dev/null
 source "$DIR/test_send_cmp_to_demo_ca.sh"

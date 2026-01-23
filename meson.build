@@ -18,7 +18,6 @@ project('GTA API for OpenSSL',
 
 # Import helper functionalities
 c_compiler = meson.get_compiler('c')
-fs = import('fs')
 
 # Define project path options from the configuration file (meson_options.txt)
 # Expected value of openssl_modules_dir is an absolute path. 
@@ -119,24 +118,24 @@ if dilithium_on
    oqs_library_dep = dependency('liboqs', required: true)
    deps += oqs_library_dep
 
-   # 3. Open Quantum Safe OpenSSL provider (oqs-provider) (runtime dependency | static library)
+   # 3. Open Quantum Safe OpenSSL provider (oqs-provider) (runtime dependency | dyn library)
    oqs_provider_dep = dependency('oqs-provider', required: true)
    deps += oqs_provider_dep
 
+   # 4. Mathematical library
+   dep_math = dependency('libm', required: false) 
+   deps += dep_math
+
 endif
 
-# 4. GTA API
+# 5. GTA API
 gta_dep = dependency('libgta', required: true)
 deps += gta_dep
 
-# 5. GTA API SW Provider (normalized, the file needs to be stored manually in a subfolder)
+# 6. GTA API SW Provider (normalized, the file needs to be stored manually in a subfolder)
 gta_lib_dir = join_paths(meson.project_source_root(), 'deps', 'gta_api', 'lib_latest')
 gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
 deps += gta_sw_provider_normalized_dep
-
-# 6. Mathematical library
-dep_math = dependency('libm', required: false) 
-deps += dep_math
 
 # 7. Test dependency
 bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test_tools/master/bash_test_tools'
@@ -172,7 +171,7 @@ openssl_provider_with_gta = shared_module(
 # Custom meson targets
 # Install 
 run_target('install-module', 
-   command: ['meson', 'install', '-C', meson.build_root()]
+   command: ['meson', 'install', '-C', meson.project_build_root()]
 )
 
 # Uninstall
@@ -183,11 +182,13 @@ run_target('uninstall-module',
 # Remove
 run_target('remove',
   command: ['sh', '-c',
-    'rm -rf "@0@" && ' +
-    'rm -rf "@1@" && ' +
-    'rm -f "@2@"/*.pem && ' +
-    'rm -f "@3@"/*.pem && ' +
-    'rm -f "@4@/tools/bash_test_tools"'
+    (
+      'rm -rf "@0@" && ' +
+      'rm -rf "@1@" && ' +
+      'rm -f "@2@"/*.pem && ' +
+      'rm -f "@3@"/*.pem && ' +
+      'rm -f "@4@/tools/bash_test_tools"'
+    )
       .format(ca_dir,
               join_paths(client_dir, 'serialized_data'),
               client_dir,
@@ -199,12 +200,14 @@ run_target('remove',
 # Prepare test tools
 fetch_test_tools = custom_target(
   'fetch_test_tools',
-  output: 'bash_test_tools',   # kell legalább 1 output
+  output: 'bash_test_tools',
   command: [
     'sh', '-c',
-    'mkdir -p "@0@/tools" && ' +
-    'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
-    'chmod +x "@0@/tools/bash_test_tools"'
+    (
+      'mkdir -p "@0@/tools" && ' +
+      'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
+      'chmod +x "@0@/tools/bash_test_tools"'
+    )
       .format(integration_test_dir, 
               bash_test_tool_url)
   ]
@@ -222,12 +225,18 @@ run_target('run-test',
 
 # 2) Build project:
 # meson compile -C build
+# or
+# ninja -C build
 
 # 3) Install provider (gta.so copy to OPENSSL_MODULES_DIR):
 # sudo meson compile -C build install-module
+# or
+# sudo ninja -C build install-module
 
 # 4) Run tests
 # meson compile -C build run-test
+# or
+# ninja -C build run-test
 
 # 5) Remove provider (delete gta.so from OPENSSL_MODULES_DIR):
 # meson compile -C build uninstall-module
