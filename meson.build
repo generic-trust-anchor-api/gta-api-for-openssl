@@ -31,38 +31,38 @@ integration_test_dir    = join_paths(meson.project_source_root(), get_option('in
 serialized_opt          = get_option('serialized_data_dir')
 
 if serialized_opt == ''
-  serialized_data_dir = join_paths(client_dir, 'serialized_data')
+   serialized_data_dir = join_paths(client_dir, 'serialized_data')
 else
-  serialized_data_dir = join_paths(meson.project_source_root(), serialized_opt)
+   serialized_data_dir = join_paths(meson.project_source_root(), serialized_opt)
 endif
 
 # Specify global compiler options
 add_project_arguments(
-    c_compiler.get_supported_arguments(
+   c_compiler.get_supported_arguments(
         '-Wextra',
         '-Wformat-truncation=0',
         '-Wpedantic',
         '-Wno-unused-function',
         '-Wno-unused-parameter',
-    ),
-    language: 'c'
+   ),
+   language: 'c'
 )
 
 # Specify project compile options
 # Specify the SERIALIZATION_FOLDER directory macro as compiler option
 serialization_folder_c_args = [
-  '-DSERIALIZATION_FOLDER="@0@"'.format(serialized_data_dir),
+   '-DSERIALIZATION_FOLDER="@0@"'.format(serialized_data_dir),
 ]
 add_project_arguments(serialization_folder_c_args, language: 'c')
 
 # Activate elliptic curve support
 if get_option('ec_on')
-  add_project_arguments('-DEC_ON', language: 'c')
+   add_project_arguments('-DEC_ON', language: 'c')
 endif
 
 # Activate dilithium (pqc) support
 if get_option('dilithium_on')
-  add_project_arguments('-DDILITHIUM_ON', language: 'c')
+   add_project_arguments('-DDILITHIUM_ON', language: 'c')
 endif
 
 # Logger configuration
@@ -71,37 +71,37 @@ add_project_arguments('-DLOG_LEVEL=@0@'.format(get_option('log_level').to_string
 
 # Enable to show base64 decoded data in the log
 if get_option('log_b64_on')
-  add_project_arguments('-DLOG_B64_ON', language: 'c')
+   add_project_arguments('-DLOG_B64_ON', language: 'c')
 endif
 
 # Enable to show byte array data in the log
 if get_option('log_byte_array_on')
-  add_project_arguments('-DLOG_BYTE_ARRAY_ON', language: 'c')
+   add_project_arguments('-DLOG_BYTE_ARRAY_ON', language: 'c')
 endif
 
 # Enable to show state of the for cycle in the log
 if get_option('log_for_cycle_on')
-  add_project_arguments('-DLOG_FOR_CYCLE_ON', language: 'c')
+   add_project_arguments('-DLOG_FOR_CYCLE_ON', language: 'c')
 endif
 
 # Select build type [release | debug]
 build_type = get_option('build_type')
 
 if build_type == 'release'
-add_project_arguments(
-   c_compiler.get_supported_arguments(
-      '-O2',
-   ),
-   language: 'c'
-)
+   add_project_arguments(
+      c_compiler.get_supported_arguments(
+         '-O2',
+      ),
+      language: 'c'
+   )
 elif build_type == 'debug'
-add_project_arguments(
-   c_compiler.get_supported_arguments(
-      '-O0',
-      '-g',
-   ),
-   language: 'c'
-)
+   add_project_arguments(
+      c_compiler.get_supported_arguments(
+         '-O0',
+         '-g',
+      ),
+      language: 'c'
+   )
 endif
 
 # Dependencies
@@ -113,7 +113,6 @@ deps += openssl_dep
 # Post quantum support is deactivated
 dilithium_on = get_option('dilithium_on')
 if dilithium_on
-
    # 2. Open Quantum Safe low level library (liboqs) (build dependency | static library)
    oqs_library_dep = dependency('liboqs', required: true)
    deps += oqs_library_dep
@@ -125,7 +124,6 @@ if dilithium_on
    # 4. Mathematical library
    dep_math = dependency('libm', required: false) 
    deps += dep_math
-
 endif
 
 # 5. GTA API
@@ -142,17 +140,18 @@ bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test
 
 # Define the sources
 py = find_program('python3')
+
 code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
-res = run_command(py, '-c', code)
+res = run_command(py, '-c', code, check: true)
 
 if res.returncode() != 0
-  error('Python glob sikertelen: @0@'.format(res.stderr()))
+   error('Error occurred while collecting the source files: @0@'.format(res.stderr()))
 endif
 
 provider_src = []
 out = res.stdout().strip()
 if out != ''
-  provider_src = out.split('\n')
+   provider_src = out.split('\n')
 endif
 
 message('Identified source files: ' + out)
@@ -160,12 +159,12 @@ message('Identified source files: ' + out)
 # Shared library configuration
 # The output is 'gta.so' (not 'libgta.so'), because name_prefix is empty 
 openssl_provider_with_gta = shared_module(
-  'gta',
-  provider_src,
-  name_prefix: '',
-  dependencies: deps,
-  install: true,
-  install_dir: openssl_modules_dir,
+   'gta',
+   provider_src,
+   name_prefix: '',
+   dependencies: deps,
+   install: true,
+   install_dir: openssl_modules_dir,
 )
 
 # Custom meson targets
@@ -176,19 +175,19 @@ run_target('install-module',
 
 # Uninstall
 run_target('uninstall-module',
-  command: ['sh', '-c', 'rm -f "@0@/gta.so"'.format(openssl_modules_dir)]
+   command: ['sh', '-c', 'rm -f "@0@/gta.so"'.format(openssl_modules_dir)]
 )
 
 # Remove
 run_target('remove',
-  command: ['sh', '-c',
-    (
+   command: ['sh', '-c',
+   (
       'rm -rf "@0@" && ' +
       'rm -rf "@1@" && ' +
       'rm -f "@2@"/*.pem && ' +
       'rm -f "@3@"/*.pem && ' +
       'rm -f "@4@/tools/bash_test_tools"'
-    )
+   )
       .format(ca_dir,
               join_paths(client_dir, 'serialized_data'),
               client_dir,
@@ -199,15 +198,15 @@ run_target('remove',
 
 # Prepare test tools
 fetch_test_tools = custom_target(
-  'fetch_test_tools',
-  output: 'bash_test_tools',
-  command: [
-    'sh', '-c',
-    (
+   'fetch_test_tools',
+   output: 'bash_test_tools',
+   command: [
+   'sh', '-c',
+   (
       'mkdir -p "@0@/tools" && ' +
       'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
       'chmod +x "@0@/tools/bash_test_tools"'
-    )
+   )
       .format(integration_test_dir, 
               bash_test_tool_url)
   ]
@@ -215,8 +214,8 @@ fetch_test_tools = custom_target(
 
 # Run test
 run_target('run-test',
-  command: ['sh', '-c', 'cd "@0@" && ./run_tests.sh'.format(integration_test_dir)],
-  depends: [fetch_test_tools]
+   command: ['sh', '-c', 'cd "@0@" && ./run_tests.sh'.format(integration_test_dir)],
+   depends: [fetch_test_tools]
 )
 
 # Meson popular commands:

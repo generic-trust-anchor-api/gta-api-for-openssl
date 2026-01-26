@@ -36,6 +36,15 @@ graph TD;
 ## Prerequisite 
 The following tools and libraries need to be installed for build and run the demo project.
 
+### Structure of the Repository
+| File        | Description |
+| :---        |      :---   |
+| ./meson_options.txt | Project‑specific configuration options used by the Meson build system |
+| ./provider  | OpenSSL provider implementation for using the GTA API framework/middleware and GTA API Software Provider |
+| ./tests     | Integration tests to cover the demo scenarios (TLS handshake, generate CMP message) |
+| ./demo      | TLS clint/server and CMP demo |
+| ./deps      | Installation director of GTA API Software Provider as a "merged static library" |
+
 ### Build dependencies
 
 - __GTA API Core:__ Generic Trust Anchor API for Industrial IoT devices. Details are described in [ISO/IEC TS 30168](https://www.iso.org/standard/53288.html).
@@ -60,11 +69,17 @@ The following tools and libraries need to be installed for build and run the dem
 
 - __Additional development and test packages:__
     * __strace__: to intercept and record the system calls or event of an application.
-    * In case of the debian based Linux: 
-      ```
-      apt -y install build-essential curl git unzip llvm llvm-dev strace
-      ```   
-               
+    * __meson:__ Python-based build system generator like Automake or CMake
+    * __ninja-build:__ Build tool like make
+    * __build-essential:__ Meta-package to install a full build environment on Debian-based systems
+    * __libssl-dev:__ Development package for OpenSSL
+    * __pkg-config:__ Tool required by meson to figure out compiler/linker options for library dependencies
+  
+    Install command in case of the debian based Linux: 
+    ```
+    $ apt -y install meson ninja-build build-essential curl git unzip llvm llvm-dev strace pkg-config python3 libssl-dev
+    ```   
+
 ### Runtime dependencies 
 
 - __OpenSSL 3.2.x (or newer):__ OpenSSL 3.2.0 needs to be installed on the system.
@@ -77,19 +92,12 @@ The following tools and libraries need to be installed for build and run the dem
 
 * Compile and install the OpenSSL provider and helper programs:
   ```
-  make
-  sudo make install
-  ```
-* Optional compiler parameters in the Makefile:
-    * Enable EC: __-DEC_ON__
-    * Enable Dilithium: __-DDILITHIUM_ON__
-    * Enable log all byte array: __-DLOG_BYTE_ARRAY_ON__
-    * Enable log all base 64 string: __-DLOG_B64_ON__
-    * Enable log all base 64 string: __-DLOG_FOR_CYCLE_ON__
-    * Selected log level: __-DLOG_LEVEL=0__ (TRACE 0 | DEBUG 1 | INFO  2 | WARN  3 | ERROR 4)
-* Optional parameters to change install traget: 
-    * OPENSSL_MODULES_DIR ?= /lib/x86_64-linux-gnu/ossl-modules/
+  $ meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
 
+  $ ninja -C build
+
+  $ sudo ninja -C build install-module
+  ```
 
 ## Run TLS demo
 
@@ -134,7 +142,9 @@ The following tools and libraries need to be installed for build and run the dem
 ## Run integration tests
 * Test OpenSSL provider and helper programs:
   ```
-  make
-  sudo make install 
-  make test
+  $ ninja -C build
+
+  $ sudo ninja -C build install-module
+  
+  $ ninja -C build run-test
   ```

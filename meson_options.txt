@@ -21,7 +21,7 @@ option('serialized_data_dir', type: 'string', value: 'demo/client/serialized_dat
 option('integration_test_dir', type: 'string', value: 'tests/integration',
     description: 'Integration test directory')
 
-# Crypto configuration:
+# Crypto algorithm configuration:
 option('ec_on', type: 'boolean', value: true,  
         description: 'Enable Elliptic Curve support')
 option('dilithium_on', type: 'boolean', value: false, 
