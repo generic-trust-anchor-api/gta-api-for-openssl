@@ -67,7 +67,7 @@ jobs:
         env:
           TERM: xterm
         run: |
-          make test
+          ninja -C build run-test
 
   style-check:
     runs-on: ubuntu-latest
