@@ -153,8 +153,7 @@ endif
 #if out != ''
 #   provider_src = out.split('\n')
 #endif
-
-message('Identified source files: ' + out)
+#message('Identified source files: ' + out)
 
 provider_src = [
    'provider/gtaossl-provider.c',
