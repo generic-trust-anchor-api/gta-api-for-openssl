@@ -148,13 +148,31 @@ if res.returncode() != 0
    error('Error occurred while collecting the source files: @0@'.format(res.stderr()))
 endif
 
-provider_src = []
-out = res.stdout().strip()
-if out != ''
-   provider_src = out.split('\n')
-endif
+#provider_src = []
+#out = res.stdout().strip()
+#if out != ''
+#   provider_src = out.split('\n')
+#endif
 
 message('Identified source files: ' + out)
+
+provider_src = [
+   'provider/gtaossl-provider.c',
+   'provider/logger/gtaossl-provider-logger.c',
+   'provider/algorithms/gtaossl-provider-base-signature.c',
+   'provider/algorithms/gtaossl-provider-base-keymgmt.c',
+   'provider/algorithms/gtaossl-provider-base-pem-decoder.c',
+   'provider/algorithms/gtaossl-provider-base-gta-decoder.c',
+   'provider/algorithms/ecdsa/gtaossl-provider-ecdsa-signature.c',
+   'provider/algorithms/ecdsa/gtaossl-provider-ecdsa-keymgmt.c',
+   'provider/algorithms/ecdsa/gtaossl-provider-ecdsa-gta-decoder.c',
+   'provider/algorithms/dilithium/gtaossl-provider-dilithium-keymgmt.c',
+   'provider/algorithms/dilithium/gtaossl-provider-dilithium-types.c',
+   'provider/algorithms/dilithium/gtaossl-provider-dilithium-der-decoder.c',
+   'provider/algorithms/dilithium/gtaossl-provider-dilithium-gta-decoder.c',
+   'provider/algorithms/dilithium/gtaossl-provider-dilithium-signature.c'
+   'provider/stream/streams.c
+]
 
 # Shared library configuration
 # The output is 'gta.so' (not 'libgta.so'), because name_prefix is empty 
