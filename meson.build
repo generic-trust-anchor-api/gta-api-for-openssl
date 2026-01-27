@@ -171,7 +171,7 @@ provider_src = [
    'provider/algorithms/dilithium/gtaossl-provider-dilithium-der-decoder.c',
    'provider/algorithms/dilithium/gtaossl-provider-dilithium-gta-decoder.c',
    'provider/algorithms/dilithium/gtaossl-provider-dilithium-signature.c',
-   'provider/stream/streams.c
+   'provider/stream/streams.c'
 ]
 
 # Shared library configuration
