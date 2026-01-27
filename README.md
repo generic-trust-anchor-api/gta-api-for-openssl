@@ -33,9 +33,6 @@ graph TD;
   E( gta-api-sw-provider )
 ```
 
-## Prerequisite 
-The following tools and libraries need to be installed for build and run the demo project.
-
 ### Structure of the Repository
 | File        | Description |
 | :---        |      :---   |
@@ -44,6 +41,9 @@ The following tools and libraries need to be installed for build and run the dem
 | ./tests     | Integration tests to cover the demo scenarios (TLS handshake, generate CMP message) |
 | ./demo      | TLS clint/server and CMP demo |
 | ./deps      | Installation director of GTA API Software Provider as a "merged static library" |
+
+## Prerequisite 
+The following tools and libraries need to be installed for build and run the demo project.
 
 ### Build dependencies
 
