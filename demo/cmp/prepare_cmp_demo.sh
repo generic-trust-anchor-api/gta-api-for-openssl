@@ -4,10 +4,18 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-export GTA_API_STATE_DIR="./client/serialized_data"
+if [ "${WORK_DIR}" == "" ]; then
+    export _WD="."
+else
+    export _WD="${WORK_DIR}"
+fi
+
+echo "Working directory: $_WD"
+
+export GTA_API_STATE_DIR="$_WD/cmp/serialized_data"
 export GTA_STATE_DIRECTORY=$GTA_API_STATE_DIR
-export CMP_CREDENTIAL_DIR=./cmp/cmp_example
-export OPENSSL_CONF=/src/openssl.cnf
+export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
+export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 openssl list -providers
 if openssl list -provider gta -providers; then
@@ -22,6 +30,13 @@ if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
 else
     echo "Missing gta-cli"
     exit 1
+fi
+
+if [[ -d "$_WD/cmp" ]]; then
+    echo "CMP (in $_WD) directory exists."
+else
+    echo "Create $_WD/cmp directory."
+    mkdir -p "$_WD/cmp"
 fi
 
 if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
