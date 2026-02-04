@@ -8,7 +8,6 @@ function test_no_parameter_during_the_init
 {
     echo "Test the no parameter case"
     echo "Prepare test"
-    pwd
     (cd demo/tls && ./prepare_tls_demo.sh &>/dev/null)
     echo "Start server"
     (cd demo/tls/server && timeout 10s ./start_server.sh &>/dev/null)&

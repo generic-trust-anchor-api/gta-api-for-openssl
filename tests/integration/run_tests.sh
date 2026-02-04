@@ -20,8 +20,9 @@ source "$DIR/tools/bash_test_tools"
 function setup
 {
     echo "Setup test env..."
-    cd "$DIR/../.."
+    cd "$DIR/../.." || exit
     echo "Working directory: $_WD"
+    echo -n "Current dir:" 
     pwd
     echo "Test source dir: $DIR"
     return 0
@@ -31,9 +32,8 @@ function teardown
 {
     echo "Teardown test..."
     killall -s 9 openssl
-    
+    echo -n "Current dir:"
     pwd   
-    
     echo "Clean up test folder..."
     rm -rf "$_WD/CA"
     echo "The CA dir removed"

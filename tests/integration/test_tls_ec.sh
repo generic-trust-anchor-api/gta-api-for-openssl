@@ -8,7 +8,6 @@ function test_ec_parameter_during_the_init
 {
     echo "Test the ec value"
     echo "Prepare test"
-    pwd
     (cd demo/tls && ./prepare_tls_demo.sh ec &>/dev/null)
     echo "Start server"
     (cd demo/tls/server && timeout 10s ./start_server.sh &>/dev/null)&
@@ -18,9 +17,7 @@ function test_ec_parameter_during_the_init
     echo "Start client"
     run ./start_client.sh
     sleep 1
-    
-    pwd    
-
+   
     assert_output_contains "Verification: OK"
     assert_output_contains "CONNECTED(00000003)"
     assert_output_contains "sigalg: ecdsa-with-SHA256"
