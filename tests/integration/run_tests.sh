@@ -20,7 +20,10 @@ source "$DIR/tools/bash_test_tools"
 function setup
 {
     echo "Setup test env..."
-    cd ../..    
+    cd ../..
+    echo "Working directory: $_WD"
+    pwd
+    echo "Test source dir: $DIR"
     return 0
 }
 
