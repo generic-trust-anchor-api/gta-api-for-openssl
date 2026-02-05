@@ -706,7 +706,8 @@ int OSSL_provider_init(
     }
 
     LOG_TRACE("Create absolute path to avoid the path traversal");
-    char resolved[PATH_MAX];
+    //char resolved[PATH_MAX];
+    char resolved[255];
     if (realpath(value, resolved) == NULL) {
         LOG_ERROR("Configuration problem: not able to resolve the path");
         return NOK;
