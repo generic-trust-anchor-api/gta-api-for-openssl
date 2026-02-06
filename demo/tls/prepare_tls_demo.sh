@@ -46,6 +46,14 @@ else
 fi
 
 export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
+export MY_SERIALIZATION_FOLDER="$_WD/client/serialized_data"
+
+if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
+    echo "$GTA_STATE_DIRECTORY directory exists."
+else
+    echo "Create $GTA_STATE_DIRECTORY directory."
+    mkdir -p "$GTA_STATE_DIRECTORY"
+fi
 
 openssl list -providers
 if openssl list -provider gta -providers; then
@@ -72,13 +80,6 @@ if [[ "$PROFILE" = "dilithium2" ]]; then
         echo "For example: module = <path of so file>"
         exit 1
     fi
-fi
-
-if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
-    echo "$GTA_STATE_DIRECTORY directory exists."
-else
-    echo "Create $GTA_STATE_DIRECTORY directory."
-    mkdir -p "$GTA_STATE_DIRECTORY"
 fi
 
 rm -rf "$_WD/CA"
