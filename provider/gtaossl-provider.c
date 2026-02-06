@@ -66,7 +66,7 @@ static OSSL_FUNC_core_new_error_fn * core_new_error = NULL;
 static OSSL_FUNC_core_set_error_debug_fn * core_set_error_debug = NULL;
 static OSSL_FUNC_core_vset_error_fn * core_vset_error = NULL;
 
-const char *env_name_of_ser_folder = "MY_SERIALIZATION_FOLDER";
+const char *env_name_of_ser_folder = "MI_SERIALIZATION_FOLDER";
 const char *default_value_of_ser_folder = SERIALIZATION_FOLDER;
 
 /*-------------------------------------------------------------------------*/
