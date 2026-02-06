@@ -14,7 +14,7 @@ option('server_dir', type: 'string', value: 'demo/server',
         description: 'Demo server directory')
 option('ca_dir', type: 'string', value: 'demo/CA', 
         description: 'Demo CA directory')
-option('serialized_data_dir', type: 'string', value: 'demo/client/serialized_data',
+option('serialized_data_dir', type: 'string', value: './serialized_data',
         description: 'Serialization directory')
 
 # Test configuration:

@@ -28,13 +28,7 @@ ca_dir                  = join_paths(meson.project_source_root(), get_option('ca
 integration_test_dir    = join_paths(meson.project_source_root(), get_option('integration_test_dir'))
 
 # Serialized_data_dir can be relative path or empty string (if empty, then value is client_dir/serialized_data)
-serialized_opt          = get_option('serialized_data_dir')
-
-if serialized_opt == ''
-   serialized_data_dir = join_paths(client_dir, 'serialized_data')
-else
-   serialized_data_dir = join_paths(meson.project_source_root(), serialized_opt)
-endif
+serialized_data_dir     = get_option('serialized_data_dir')  
 
 # Specify global compiler options
 add_project_arguments(

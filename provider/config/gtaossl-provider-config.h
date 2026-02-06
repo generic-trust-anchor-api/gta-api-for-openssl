@@ -15,6 +15,7 @@ extern "C" {
 #define OK 1
 
 #define NO_SIZE_INFO -1
+#define NO_FILE_STAT_INFO -1
 
 #define PREQS_EC "EC"
 
