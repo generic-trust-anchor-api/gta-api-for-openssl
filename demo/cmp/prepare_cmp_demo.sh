@@ -13,24 +13,10 @@ fi
 echo "Working directory: $_WD"
 
 export GTA_API_STATE_DIR="$_WD/cmp/serialized_data"
-export GTA_STATE_DIRECTORY=$GTA_API_STATE_DIR
+export GTA_STATE_DIRECTORY="$GTA_API_STATE_DIR"
+export MY_SERIALIZATION_FOLDER="$_WD/cmp/serialized_data"
 export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
 export OPENSSL_CONF=../openssl_config/openssl.cnf
-
-openssl list -providers
-if openssl list -provider gta -providers; then
-    echo "The gta provider installed... OK"
-else
-    echo "Missing gta provider"
-    exit 1
-fi
-
-if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
-    echo "The gta-cli installed... OK"
-else
-    echo "Missing gta-cli"
-    exit 1
-fi
 
 if [[ -d "$_WD/cmp" ]]; then
     echo "CMP (in $_WD) directory exists."
@@ -53,8 +39,31 @@ else
     mkdir -p "$CMP_CREDENTIAL_DIR"
 fi
 
+if [[ -d "$MY_SERIALIZATION_FOLDER" ]]; then
+    echo "$MY_SERIALIZATION_FOLDER directory exists."
+else
+    echo "Create $MY_SERIALIZATION_FOLDER directory."
+    mkdir -p "$MY_SERIALIZATION_FOLDER"
+fi
+
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -f "$CMP_CREDENTIAL_DIR/"*
+rm -f "$MY_SERIALIZATION_FOLDER/"*
+
+openssl list -providers
+if openssl list -provider gta -providers; then
+    echo "The gta provider installed... OK"
+else
+    echo "Missing gta provider"
+    exit 1
+fi
+
+if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
+    echo "The gta-cli installed... OK"
+else
+    echo "Missing gta-cli"
+    exit 1
+fi
 
 echo "Create reference to GTA API private key for OpenSSL provider (personality_name,profile_name)"
 echo "-----BEGIN GTA PRIVATE KEY-----" > "$CMP_CREDENTIAL_DIR/gta-key.pem"
