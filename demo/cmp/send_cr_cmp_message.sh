@@ -37,7 +37,7 @@ else
 fi
 
 echo "Send cmp"
-openssl cmp -server pki.certificate.fi:8700/pkix/ -secret pass:insta -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -ref 3078 -subject "/CN=openssl-cmp-provider-test" -cmd cr -certout "$CMP_CREDENTIAL_DIR/test.cert.pem" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -verbosity 8
+openssl cmp -server pki.certificate.fi:8700/pkix/ -secret pass:insta -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -ref 3078 -subject "/CN=openssl-cmp-provider-test" -cmd cr -certout "$CMP_CREDENTIAL_DIR/test.cert.pem" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -verbosity 8 -total_timeout 5
 
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
