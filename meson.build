@@ -162,21 +162,13 @@ openssl_provider_with_gta = shared_module(
 )
 
 # Custom meson targets
-# Remove
+# Remove build directory
 run_target('remove',
    command: ['sh', '-c',
    (
-      'rm -rf "@0@" && ' +
-      'rm -rf "@1@" && ' +
-      'rm -f "@2@"/*.pem && ' +
-      'rm -f "@3@"/*.pem && ' +
-      'rm -f "@4@/tools/bash_test_tools"'
+      'rm -rf "@0@"'
    )
-      .format(ca_dir,
-              join_paths(client_dir, 'serialized_data'),
-              client_dir,
-              server_dir,
-              integration_test_dir)
+      .format(meson.project_build_root())
   ]
 )
 
@@ -197,14 +189,6 @@ fetch_test_tools = custom_target(
 )
 
 # Run test
-run_target('run-test',
-   command: ['sh', '-c', 'cd "@0@" && ./run_tests.sh'.format(integration_test_dir)],
-   depends: [fetch_test_tools],
-   env: {
-      'BUILD_DIR' : meson.project_build_root(),
-   }
-)
-
 run_test_suit = find_program(meson.project_source_root() + '/tests/integration/run_tests.sh')
 test(
    'run_test_suit',
@@ -214,38 +198,39 @@ test(
    env: {
       'BUILD_DIR' : meson.project_build_root(),
    },
-   is_parallel : false
+   is_parallel : false,
+   timeout : 0
 )
 
 # Meson popular commands:
-# 1) Create build folder and setup project:
-# meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+# 1) Create build folder and setup project (<build_dir> needs to replaced with a custom value):
+# meson setup <build_dir> -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
 
 # 2) Build project:
-# meson compile -C build
+# meson compile -C <build_dir>
 # or
-# ninja -C build
+# ninja -C <build_dir>
 
 # 3) Install provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C build install
+# sudo meson compile -C <build_dir> install
 # or
-# sudo ninja -C build install
+# sudo ninja -C <build_dir> install
 
 # 4) Uninstall provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C build uninstall
+# sudo meson compile -C <build_dir> uninstall
 # or
-# sudo ninja -C build uninstall
+# sudo ninja -C <build_dir> uninstall
 
 # 5) Run tests
-# meson compile -C build run-test
+# meson test -C <build_dir>
 # or
-# ninja -C build run-test
+# ninja -C <build_dir> test
 
-# 6) Remove provider (delete gta.so from OPENSSL_MODULES_DIR):
-# meson compile -C build uninstall-module
+# 6) Remove build directory:
+# meson compile -C <build_dir> remove
 
-# 7) Clean up test and demo project:
-# meson compile -C build remove
+# Clean compiled objects in the build directory:
+# ninja -C builddir clean
 
-# Clean build directory:
-# meson setup --wipe build
+# Reconfigure project:
+# meson setup --wipe <build_dir>
