@@ -61,13 +61,13 @@ jobs:
         run: |
           meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
           ninja -C build
-          sudo ninja -C build install-module
+          sudo ninja -C build install
           sudo ldconfig
       - name: Test gta-api-for-openssl
         env:
           TERM: xterm
         run: |
-          ninja -C build run-test
+          ninja -C build test
 
   style-check:
     runs-on: ubuntu-latest
