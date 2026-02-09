@@ -60,7 +60,7 @@ gta-cli personality_attributes_enumerate --pers=CMP
 export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
 
 echo "Send cmp"
-openssl cmp -server pki.certificate.fi:8700/pkix/ -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -trusted "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem" -ignore_keyusage -cert "$CMP_CREDENTIAL_DIR/test.cert.pem" -key "$CMP_CREDENTIAL_DIR/gta-key.pem" -subject "/CN=openssl-cmp-provider-test" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -cmd kur -certout "$CMP_CREDENTIAL_DIR/test.cert-updated.pem" -verbosity 8 -total_timeout 5
+openssl cmp -server pki.certificate.fi:8700/pkix/ -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -trusted "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem" -ignore_keyusage -cert "$CMP_CREDENTIAL_DIR/test.cert.pem" -key "$CMP_CREDENTIAL_DIR/gta-key.pem" -subject "/CN=openssl-cmp-provider-test" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -cmd kur -certout "$CMP_CREDENTIAL_DIR/test.cert-updated.pem" -verbosity 8 -total_timeout 10
 
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
