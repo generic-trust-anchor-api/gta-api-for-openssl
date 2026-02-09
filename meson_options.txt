@@ -7,19 +7,9 @@ option('openssl_modules_dir', type: 'string',
        value: '/lib/x86_64-linux-gnu/ossl-modules',
        description: 'OpenSSL provider directory')
 
-# Demo configuration:
-option('client_dir', type: 'string', value: 'demo/client',
-        description: 'Demo client directory')
-option('server_dir', type: 'string', value: 'demo/server',
-        description: 'Demo server directory')
-option('ca_dir', type: 'string', value: 'demo/CA', 
-        description: 'Demo CA directory')
+# Default configuration:
 option('serialized_data_dir', type: 'string', value: './serialized_data',
         description: 'Serialization directory')
-
-# Test configuration:
-option('integration_test_dir', type: 'string', value: 'tests/integration',
-    description: 'Integration test directory')
 
 # Crypto algorithm configuration:
 option('ec_on', type: 'boolean', value: true,  

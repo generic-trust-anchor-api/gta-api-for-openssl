@@ -96,7 +96,7 @@ The following tools and libraries need to be installed for build and run the dem
 
   $ ninja -C build
 
-  $ sudo ninja -C build install-module
+  $ sudo ninja -C build install
   ```
 
 ## Run TLS demo
@@ -104,8 +104,8 @@ The following tools and libraries need to be installed for build and run the dem
 * Change to the `demo` directory and create the necessary keys and certificates:
     * __Elliptic Curve__ key material and certificates: 
         ```
-            cd demo
-            ./prepare_demo.sh
+            cd demo/tls
+            ./prepare_tls_demo.sh
         ```
 
 * In one terminal change into the server directory and start the server:
@@ -124,7 +124,7 @@ The following tools and libraries need to be installed for build and run the dem
 * Change to the `demo` directory and create the necessary keys and certificates:
     * __CMP__ key materials and certificates: 
         ```
-            cd demo
+            cd demo/cmp
             ./prepare_cmp_demo.sh
         ```
 
@@ -133,9 +133,8 @@ The following tools and libraries need to be installed for build and run the dem
   cd cmp
   ./send_cr_cmp_message.sh
   ```
-* In the terminal, run a cmp client to update key of a certificate:
+* In the terminal, run a cmp client to update key of a certificate (the key update pending on the previous __certificate signing__ step):
   ```
-  cd cmp
   ./send_kur_cmp_message.sh
   ```
 
@@ -144,7 +143,7 @@ The following tools and libraries need to be installed for build and run the dem
   ```
   $ ninja -C build
 
-  $ sudo ninja -C build install-module
+  $ sudo ninja -C build install
   
-  $ ninja -C build run-test
+  $ ninja -C build test
   ```

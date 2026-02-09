@@ -22,12 +22,9 @@ c_compiler = meson.get_compiler('c')
 # Define project path options from the configuration file (meson_options.txt)
 # Expected value of openssl_modules_dir is an absolute path. 
 openssl_modules_dir     = get_option('openssl_modules_dir')
-client_dir              = join_paths(meson.project_source_root(), get_option('client_dir'))
-server_dir              = join_paths(meson.project_source_root(), get_option('server_dir'))
-ca_dir                  = join_paths(meson.project_source_root(), get_option('ca_dir'))
-integration_test_dir    = join_paths(meson.project_source_root(), get_option('integration_test_dir'))
+integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integration')
 
-# Serialized_data_dir can be relative path or empty string (if empty, then value is client_dir/serialized_data)
+# Default value of serialized_data_dir 
 serialized_data_dir     = get_option('serialized_data_dir')  
 
 # Specify global compiler options
@@ -193,10 +190,10 @@ run_test_suit = find_program(meson.project_source_root() + '/tests/integration/r
 test(
    'run_test_suit',
    run_test_suit,
-   workdir : meson.project_source_root() + '/tests/integration',
+   workdir : integration_test_dir,
    depends: [fetch_test_tools],
    env: {
-      'BUILD_DIR' : meson.project_build_root(),
+      'WORK_DIR' : meson.project_build_root(),
    },
    is_parallel : false,
    timeout : 0
@@ -227,10 +224,7 @@ test(
 # ninja -C <build_dir> test
 
 # 6) Remove build directory:
-# meson compile -C <build_dir> remove
-
-# Clean compiled objects in the build directory:
-# ninja -C builddir clean
+# 'rm -rf <build_dir>
 
 # Reconfigure project:
 # meson setup --wipe <build_dir>
