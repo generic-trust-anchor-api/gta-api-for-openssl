@@ -149,4 +149,4 @@ else
     openssl x509 -req -in "$_WD/client/csr.pem" -out "$_WD/client/cert.pem" -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -CAcreateserial -days 365
 fi
 
-cat ./client/cert.pem
+cat "$_WD/client/cert.pem"
