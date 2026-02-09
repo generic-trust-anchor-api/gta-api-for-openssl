@@ -39,6 +39,8 @@ function teardown
     echo "The CA dir removed"
     rm -rf "$_WD/client/serialized_data/"*
     echo "The client/serialized_data dir removed"
+    rm -rf "$_WD/cmp/serialized_data"
+    echo "The cmp/serialized_data dir removed"
     rm -rf "$_WD/client/cert.pem"
     echo "The client/cert.pem file removed"
     rm -rf "$_WD/client/csr.pem"

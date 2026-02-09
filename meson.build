@@ -209,7 +209,10 @@ fetch_test_tools = custom_target(
 # Run test
 run_target('run-test',
    command: ['sh', '-c', 'cd "@0@" && ./run_tests.sh'.format(integration_test_dir)],
-   depends: [fetch_test_tools]
+   depends: [fetch_test_tools],
+   env: {
+      'BUILD_DIR' : meson.project_build_root(),
+   }
 )
 
 # Meson popular commands:
