@@ -87,7 +87,7 @@ rm -f "$GTA_STATE_DIRECTORY/"*
 rm -rf "$_WD/client/"*.pem
 rm -rf "$_WD/server/"*.pem
 
-mkdir CA
+mkdir "$_WD/CA"
 mkdir -p "$GTA_STATE_DIRECTORY"
 
 if [[ "$PROFILE" = "ec" ]]; then
