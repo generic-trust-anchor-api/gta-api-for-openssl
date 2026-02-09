@@ -209,7 +209,7 @@ run_test_suit = find_program(meson.project_source_root() + '/tests/integration/r
 test(
    'run_test_suit',
    run_test_suit,
-   workdir : meson.project_source_root() + '/tests/integration,
+   workdir : meson.project_source_root() + '/tests/integration',
    depends: [fetch_test_tools],
    env: {
       'BUILD_DIR' : meson.project_build_root(),
