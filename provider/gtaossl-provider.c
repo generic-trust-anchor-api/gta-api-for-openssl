@@ -372,14 +372,16 @@ static OQS_SIGALG_CONSTANTS oqs_sigalg_list[] = {
 };
 
 #define OQS_SIGALG_ENTRY(tlsname, realname, algorithm, oid, idx)                                                       \
-    {OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                         \
-     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                              \
-     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                       \
-     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),         \
-     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),         \
-     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),                 \
-     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),                 \
-     OSSL_PARAM_END}
+    {                                                                                                                  \
+        OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                      \
+            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                       \
+            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                \
+            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),  \
+            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),  \
+            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),          \
+            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),          \
+            OSSL_PARAM_END                                                                                             \
+    }
 
 static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
     OQS_SIGALG_ENTRY(dilithium2, dilithium2, dilithium2, OQS_DILITHIUM_2_OID, 0),
