@@ -68,7 +68,6 @@ jobs:
           TERM: xterm
         run: |
           ninja -C build test
-        continue-on-error: true
       - name: Upload test logs as artifact
         if: always()  
         uses: actions/upload-artifact@v4
