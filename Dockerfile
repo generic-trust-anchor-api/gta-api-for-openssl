@@ -125,11 +125,19 @@ ENTRYPOINT ["/bin/bash"]
 # $ docker buildx build -t gta-provider --build-arg MY_FEATURE_BRANCH="5-chore-setup-meson-build-system" . --load
 
 # Rebuild all: use --no-cache option
+# $ docker build -t gta-provider --no-cache .
+# $ docker build -t gta-provider --build-arg MY_FEATURE_BRANCH="5-chore-setup-meson-build-system" --no-cache .
 
 # Run:
 # $ docker run -it gta-provider
 
 # Test: 
-# $ export MY_SERIALIZATION_FOLDER=.
 # $ openssl list -provider gta
 
+# Open new terminal:
+# Get container id with the docker container ls
+# Execute bash in a running container to open terminal:
+# $ docker container exec -it <container id> /bin/bash
+
+# Format/style check:
+# clang-format --dry-run --Werror $(find . -name '*.c' -o -name '*.h\')

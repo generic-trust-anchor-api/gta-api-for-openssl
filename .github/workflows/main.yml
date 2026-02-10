@@ -69,13 +69,12 @@ jobs:
         run: |
           ninja -C build test
       - name: Upload test logs as artifact
-        if: always()  
+        if: failure()  
         uses: actions/upload-artifact@v4
         with:
           name: test-logs
           path: /home/runner/work/gta-api-for-openssl/gta-api-for-openssl/build/meson-logs/testlog.txt
           retention-days: 7
-
 
   style-check:
     runs-on: ubuntu-latest

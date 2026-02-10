@@ -159,16 +159,6 @@ openssl_provider_with_gta = shared_module(
 )
 
 # Custom meson targets
-# Remove build directory
-run_target('remove',
-   command: ['sh', '-c',
-   (
-      'rm -rf "@0@"'
-   )
-      .format(meson.project_build_root())
-  ]
-)
-
 # Prepare test tools
 fetch_test_tools = custom_target(
    'fetch_test_tools',
@@ -224,7 +214,7 @@ test(
 # ninja -C <build_dir> test
 
 # 6) Remove build directory:
-# 'rm -rf <build_dir>
+# rm -rf <build_dir>
 
 # Reconfigure project:
 # meson setup --wipe <build_dir>
