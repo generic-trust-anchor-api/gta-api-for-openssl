@@ -46,7 +46,6 @@ else
 fi
 
 export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
-export MY_SERIALIZATION_FOLDER="$_WD/client/serialized_data"
 
 if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
     echo "$GTA_STATE_DIRECTORY directory exists."
@@ -88,7 +87,6 @@ rm -rf "$_WD/client/"*.pem
 rm -rf "$_WD/server/"*.pem
 
 mkdir "$_WD/CA"
-mkdir -p "$GTA_STATE_DIRECTORY"
 
 if [[ "$PROFILE" = "ec" ]]; then
     echo "Create CA credentials"

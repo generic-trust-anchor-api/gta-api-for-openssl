@@ -15,7 +15,6 @@ echo "Working directory: $_WD"
 export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
 export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
 export GTA_STATE_DIRECTORY="$_WD/cmp/serialized_data"
-export MY_SERIALIZATION_FOLDER="$_WD/cmp/serialized_data"
 
 echo "Provider config..."
 cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'

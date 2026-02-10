@@ -14,7 +14,6 @@ echo "Working directory: $_WD"
 
 export GTA_API_STATE_DIR="$_WD/cmp/serialized_data"
 export GTA_STATE_DIRECTORY="$GTA_API_STATE_DIR"
-export MY_SERIALIZATION_FOLDER="$_WD/cmp/serialized_data"
 export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
@@ -39,16 +38,8 @@ else
     mkdir -p "$CMP_CREDENTIAL_DIR"
 fi
 
-if [[ -d "$MY_SERIALIZATION_FOLDER" ]]; then
-    echo "$MY_SERIALIZATION_FOLDER directory exists."
-else
-    echo "Create $MY_SERIALIZATION_FOLDER directory."
-    mkdir -p "$MY_SERIALIZATION_FOLDER"
-fi
-
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -f "$CMP_CREDENTIAL_DIR/"*
-rm -f "$MY_SERIALIZATION_FOLDER/"*
 
 openssl list -providers
 if openssl list -provider gta -providers; then

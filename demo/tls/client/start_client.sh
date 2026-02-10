@@ -13,7 +13,7 @@ fi
 echo "Working directory: $_WD"
 
 export OPENSSL_CONF=../../openssl_config/openssl_provider_gta_and_default.cnf
-export MY_SERIALIZATION_FOLDER="$_WD/client/serialized_data"
+export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
 
 echo "Provider config..."
 cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'
