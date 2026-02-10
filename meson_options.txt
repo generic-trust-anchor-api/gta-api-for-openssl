@@ -8,7 +8,7 @@ option('openssl_modules_dir', type: 'string',
        description: 'OpenSSL provider directory')
 
 # Default configuration:
-option('serialized_data_dir', type: 'string', value: './serialized_data',
+option('serialized_data_dir', type: 'string', value: '.',
         description: 'Serialization directory')
 
 # Crypto algorithm configuration:

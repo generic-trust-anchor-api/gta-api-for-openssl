@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Copyright 2025 Siemens
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # ───────────────────────────────────────────────
 # Build environment in a docker container
 # ───────────────────────────────────────────────
@@ -10,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config python3 libssl-dev \
     wget ca-certificates perl cmake \
     libcmocka-dev meson ninja-build \
-    gcc libc6-dev mc nano \
+    gcc libc6-dev mc clang-format nano \
     && rm -rf /var/lib/apt/lists/*
 
 # Instal rust and armerge with cargo
@@ -95,13 +99,15 @@ RUN cp -f /src/gta-sw-provider/builddir/libgta_sw_provider_merged.a /src/gta-ope
 
 WORKDIR /src/gta-openssl
 
+# Format/style check
+# RUN clang-format --dry-run --Werror $(find . -name '*.c' -o -name '*.h\')
+
 RUN meson setup builddir \
     && meson compile -C builddir \
     # && meson test -C builddir --print-errorlogs \
     && ninja -C builddir install
 
 RUN ldconfig /src/gta-core/builddir
-
 ENV LD_LIBRARY_PATH="/src/gta-core/builddir"
 
 ENTRYPOINT ["/bin/bash"]

@@ -10,6 +10,7 @@
 #include "config/gtaossl-provider-config.h"
 #include "logger/gtaossl-provider-logger.h"
 #include "stream/streams.h"
+#include <errno.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
@@ -18,11 +19,10 @@
 #include <openssl/prov_ssl.h>
 #include <openssl/provider.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <errno.h>
 
 #if !defined(SERIALIZATION_FOLDER)
 #error "SERIALIZATION_FOLDER not defined!"
@@ -66,8 +66,8 @@ static OSSL_FUNC_core_new_error_fn * core_new_error = NULL;
 static OSSL_FUNC_core_set_error_debug_fn * core_set_error_debug = NULL;
 static OSSL_FUNC_core_vset_error_fn * core_vset_error = NULL;
 
-const char *env_name_of_ser_folder = "MY_SERIALIZATION_FOLDER";
-const char *default_value_of_ser_folder = SERIALIZATION_FOLDER;
+const char * env_name_of_ser_folder = "MY_SERIALIZATION_FOLDER";
+const char * default_value_of_ser_folder = SERIALIZATION_FOLDER;
 
 /*-------------------------------------------------------------------------*/
 
@@ -372,16 +372,14 @@ static OQS_SIGALG_CONSTANTS oqs_sigalg_list[] = {
 };
 
 #define OQS_SIGALG_ENTRY(tlsname, realname, algorithm, oid, idx)                                                       \
-    {                                                                                                                  \
-        OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                      \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                       \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),  \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),  \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),          \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),          \
-            OSSL_PARAM_END                                                                                             \
-    }
+    {OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                         \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                              \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                       \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),         \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),         \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),                 \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),                 \
+     OSSL_PARAM_END}
 
 static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
     OQS_SIGALG_ENTRY(dilithium2, dilithium2, dilithium2, OQS_DILITHIUM_2_OID, 0),
@@ -687,22 +685,23 @@ int OSSL_provider_init(
             .mutex_unlock = NULL,
         },
         NULL};
-    
-    char *value = getenv(env_name_of_ser_folder);
+
+    char * value = getenv(env_name_of_ser_folder);
 
     if (value == NULL || value[0] == '\0') {
-       
+
         LOG_INFO("Use the default configuration");
         if (setenv(env_name_of_ser_folder, default_value_of_ser_folder, 1) != 0) {
             LOG_ERROR("Not able to use the default configuration.");
             return NOK;
         }
-        
+
         value = getenv(env_name_of_ser_folder);
-        
+
     } else {
         LOG_INFO("Use custom configuration");
-        LOG_TRACE_ARG("Use the following environment variable [ %s ] with [ %s ] value ", env_name_of_ser_folder, value);
+        LOG_TRACE_ARG(
+            "Use the following environment variable [ %s ] with [ %s ] value ", env_name_of_ser_folder, value);
     }
 
     LOG_TRACE("Create absolute path to avoid the path traversal");
@@ -736,7 +735,7 @@ int OSSL_provider_init(
         LOG_ERROR("Configuration problem: no access");
         return NOK;
     }
-      
+
     istream_from_buf_init(&init_config, resolved, sizeof(resolved) - 1);
 
     struct gta_provider_info_t provider_info = {
