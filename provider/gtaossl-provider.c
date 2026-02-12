@@ -705,7 +705,7 @@ int OSSL_provider_init(
         LOG_TRACE_ARG(
             "Use the following environment variable [ %s ] with [ %s ] value ", env_name_of_ser_folder, value);
     }
-    
+
     LOG_TRACE("Create absolute path to avoid the path traversal");
     char resolved[PATH_MAX];
     if (value == NULL || realpath(value, resolved) == NULL) {
