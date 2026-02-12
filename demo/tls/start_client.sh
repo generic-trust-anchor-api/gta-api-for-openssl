@@ -4,15 +4,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-if [ "${WORK_DIR}" == "" ]; then
-    export _WD=".."
+if [[ "${WORK_DIR}" == "" ]]; then
+    export _WD="."
 else
     export _WD="${WORK_DIR}"
 fi
 
 echo "Working directory: $_WD"
 
-export OPENSSL_CONF=../../openssl_config/openssl_provider_gta_and_default.cnf
+export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
 export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
 
 echo "Provider config..."

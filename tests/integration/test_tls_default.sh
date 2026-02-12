@@ -10,10 +10,10 @@ function test_no_parameter_during_the_init
     echo "Prepare test"
     (cd demo/tls && ./prepare_tls_demo.sh &>/dev/null)
     echo "Start server"
-    (cd demo/tls/server && timeout 10s ./start_server.sh &>/dev/null)&
+    (cd demo/tls && timeout 10s ./start_server.sh &>/dev/null)&
     sleep 2
     
-    cd demo/tls/client || exit 
+    cd demo/tls || exit 
     echo "Start client"
     run ./start_client.sh
     sleep 1

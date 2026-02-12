@@ -24,8 +24,8 @@ c_compiler = meson.get_compiler('c')
 openssl_modules_dir     = get_option('openssl_modules_dir')
 integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integration')
 
-# Default value of serialized_data_dir 
-serialized_data_dir     = get_option('serialized_data_dir')  
+# Default value of gta_state_directory 
+gta_state_directory     = get_option('gta_state_directory')  
 
 # Specify global compiler options
 add_project_arguments(
@@ -42,7 +42,7 @@ add_project_arguments(
 # Specify project compile options
 # Specify the SERIALIZATION_FOLDER directory macro as compiler option
 serialization_folder_c_args = [
-   '-DSERIALIZATION_FOLDER="@0@"'.format(serialized_data_dir),
+   '-DSERIALIZATION_FOLDER="@0@"'.format(gta_state_directory),
 ]
 add_project_arguments(serialization_folder_c_args, language: 'c')
 

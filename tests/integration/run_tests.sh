@@ -6,7 +6,7 @@
 
 DIR="$PWD"; 
 
-if [ "${WORK_DIR}" == "" ]; then
+if [[ "${WORK_DIR}" == "" ]]; then
     export _WD=".."
 else
     export _WD="${WORK_DIR}"

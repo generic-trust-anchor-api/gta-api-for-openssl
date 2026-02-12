@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-if [ "${WORK_DIR}" == "" ]; then
+if [[ "${WORK_DIR}" == "" ]]; then
     export _WD="."
 else
     export _WD="${WORK_DIR}"

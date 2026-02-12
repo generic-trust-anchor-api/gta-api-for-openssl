@@ -88,16 +88,30 @@ The following tools and libraries need to be installed for build and run the dem
     * It is intended for development only and not for productive use.
     * Follow the installation guideline on the [gta_cli](https://github.com/generic-trust-anchor-api/gta-cli.git) web page. 
       
-## Build demo 
+## Build demo
 
 * Compile and install the OpenSSL provider and helper programs:
   ```
-  $ meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+  $ meson setup <build_dir> -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
 
-  $ ninja -C build
+  $ ninja -C <build_dir>
 
-  $ sudo ninja -C build install
+  $ sudo ninja -C <build_dir> install
   ```
+
+##### Available Meson options:
+
+| **Option Name** | **Type** | **Default Value** | **Description** |
+|-------------|------|----------------|-------------|
+| openssl_modules_dir | string | /lib/x86_64-linux-gnu/ossl-modules | OpenSSL provider directory |
+| gta_state_directory | string | . | Serialization directory |
+| ec_on | boolean | true | Enable Elliptic Curve support |
+| dilithium_on | boolean | false | Enable Dilithium (PQC) support |
+| log_level | integer | 0 | Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4) |
+| log_b64_on | boolean | true | Enable showing base64 decoded data in the log |
+| log_byte_array_on | boolean | false | Enable showing byte array data in the log |
+| log_for_cycle_on | boolean | false | Enable showing state of the for cycle in the log |
+| build_type | combo | debug | Select build type with tool configuration (choices: debug, release) |
 
 ## Run TLS demo
 
@@ -141,9 +155,9 @@ The following tools and libraries need to be installed for build and run the dem
 ## Run integration tests
 * Test OpenSSL provider and helper programs:
   ```
-  $ ninja -C build
+  $ ninja -C <build_dir>
 
-  $ sudo ninja -C build install
+  $ sudo ninja -C <build_dir> install
   
-  $ ninja -C build test
+  $ ninja -C <build_dir> test
   ```
