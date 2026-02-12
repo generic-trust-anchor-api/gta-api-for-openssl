@@ -4,9 +4,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+if [[ "${WORK_DIR}" == "" ]]; then
+    export _WD="."
+else
+    export _WD="${WORK_DIR}"
+fi
+
+echo "Working directory: $_WD"
+
 export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
-export CMP_CREDENTIAL_DIR=./cmp_example
-export GTA_STATE_DIRECTORY="../client/serialized_data"
+export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
+export GTA_STATE_DIRECTORY="$_WD/cmp/serialized_data"
 
 echo "Provider config..."
 cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'
@@ -51,7 +59,7 @@ gta-cli personality_attributes_enumerate --pers=CMP
 export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
 
 echo "Send cmp"
-openssl cmp -server pki.certificate.fi:8700/pkix/ -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -trusted "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem" -ignore_keyusage -cert "$CMP_CREDENTIAL_DIR/test.cert.pem" -key "$CMP_CREDENTIAL_DIR/gta-key.pem" -subject "/CN=openssl-cmp-provider-test" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -cmd kur -certout "$CMP_CREDENTIAL_DIR/test.cert-updated.pem" -verbosity 8
+openssl cmp -server pki.certificate.fi:8700/pkix/ -recipient "/C=FI/O=Insta Demo/CN=Insta Demo CA" -trusted "$CMP_CREDENTIAL_DIR/gta-trusted-cert.pem" -ignore_keyusage -cert "$CMP_CREDENTIAL_DIR/test.cert.pem" -key "$CMP_CREDENTIAL_DIR/gta-key.pem" -subject "/CN=openssl-cmp-provider-test" -newkey "$CMP_CREDENTIAL_DIR/gta-key.pem" -cmd kur -certout "$CMP_CREDENTIAL_DIR/test.cert-updated.pem" -verbosity 8 -total_timeout 20
 
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 

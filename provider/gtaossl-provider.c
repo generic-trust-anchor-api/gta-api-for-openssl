@@ -10,6 +10,7 @@
 #include "config/gtaossl-provider-config.h"
 #include "logger/gtaossl-provider-logger.h"
 #include "stream/streams.h"
+#include <errno.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
@@ -18,7 +19,10 @@
 #include <openssl/prov_ssl.h>
 #include <openssl/provider.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #if !defined(SERIALIZATION_FOLDER)
 #error "SERIALIZATION_FOLDER not defined!"
@@ -61,6 +65,9 @@ static OSSL_FUNC_core_get_params_fn * core_get_params = NULL;
 static OSSL_FUNC_core_new_error_fn * core_new_error = NULL;
 static OSSL_FUNC_core_set_error_debug_fn * core_set_error_debug = NULL;
 static OSSL_FUNC_core_vset_error_fn * core_vset_error = NULL;
+
+const char * env_name_of_ser_folder = "GTA_STATE_DIRECTORY";
+const char * default_value_of_ser_folder = SERIALIZATION_FOLDER;
 
 /*-------------------------------------------------------------------------*/
 
@@ -681,7 +688,57 @@ int OSSL_provider_init(
         },
         NULL};
 
-    istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
+    char * value = getenv(env_name_of_ser_folder);
+
+    if (value == NULL || value[0] == '\0') {
+
+        LOG_INFO("Use the default configuration");
+        if (setenv(env_name_of_ser_folder, default_value_of_ser_folder, 1) != 0) {
+            LOG_ERROR("Not able to use the default configuration.");
+            return NOK;
+        }
+
+        value = getenv(env_name_of_ser_folder);
+
+    } else {
+        LOG_INFO("Use custom configuration");
+        LOG_TRACE_ARG(
+            "Use the following environment variable [ %s ] with [ %s ] value ", env_name_of_ser_folder, value);
+    }
+
+    LOG_TRACE("Create absolute path to avoid the path traversal");
+    char resolved[PATH_MAX];
+    if (value == NULL || realpath(value, resolved) == NULL) {
+        LOG_ERROR("Configuration problem: not able to resolve the path");
+        return NOK;
+    }
+
+    LOG_TRACE("Check to object is not file, symlink or device");
+    struct stat st;
+    if (lstat(resolved, &st) == NO_FILE_STAT_INFO) {
+        LOG_ERROR("Configuration problem: not path");
+        return NOK;
+    }
+
+    LOG_TRACE("Disable symlink");
+    if (S_ISLNK(st.st_mode)) {
+        LOG_ERROR("Configuration problem: folder must be a path");
+        return NOK;
+    }
+
+    LOG_TRACE("Check object is a directory");
+    if (!S_ISDIR(st.st_mode)) {
+        LOG_ERROR("Configuration problem: folder is not real directory");
+        return NOK;
+    }
+
+    LOG_TRACE("Check the permission");
+    if (access(resolved, X_OK) == NO_FILE_STAT_INFO) {
+        LOG_ERROR("Configuration problem: no access");
+        return NOK;
+    }
+
+    istream_from_buf_init(&init_config, resolved, sizeof(resolved) - 1);
 
     struct gta_provider_info_t provider_info = {
         .version = 0,

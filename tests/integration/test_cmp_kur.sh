@@ -8,7 +8,7 @@ function test_send_kur_cmp_to_fake_ca
 {
     echo "Test sending a cmp massege to CA server"
     echo "Prepare test"
-    (cd demo && ./prepare_cmp_demo.sh &>/dev/null)
+    (cd demo/cmp && ./prepare_cmp_demo.sh &>/dev/null)
     sleep 2
 
     echo "Create and send cr cmp message"

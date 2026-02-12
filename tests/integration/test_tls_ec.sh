@@ -4,20 +4,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-function test_no_parameter_during_the_init
+function test_ec_parameter_during_the_init
 {
-    echo "Test the no parameter case"
+    echo "Test the ec value"
     echo "Prepare test"
-    (cd demo && ./prepare_demo.sh &>/dev/null)
+    (cd demo/tls && ./prepare_tls_demo.sh ec &>/dev/null)
     echo "Start server"
-    (cd demo/server && timeout 10s ./start_server.sh &>/dev/null)&
+    (cd demo/tls && timeout 10s ./start_server.sh &>/dev/null)&
     sleep 2
     
-    cd demo/client || exit 
+    cd demo/tls || exit 
     echo "Start client"
     run ./start_client.sh
     sleep 1
-    
+   
     assert_output_contains "Verification: OK"
     assert_output_contains "CONNECTED(00000003)"
     assert_output_contains "sigalg: ecdsa-with-SHA256"

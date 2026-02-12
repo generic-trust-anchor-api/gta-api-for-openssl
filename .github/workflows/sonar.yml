@@ -51,7 +51,8 @@ jobs:
         uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6
       - name: Run Build Wrapper
         run: |
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
+          meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ninja -C build
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:

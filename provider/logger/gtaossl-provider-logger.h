@@ -58,7 +58,7 @@ extern "C" {
 #if LOG_LEVEL == LOG_LEVEL_TRACE
 #define LOG_TRACE_ARG(fmt, ...) LOG__DECL_LOGLEVELF("TRACE", fmt, __VA_ARGS__)
 #define LOG_TRACE(fmt) LOG__DECL_LOGLEVELS("TRACE", fmt)
-#ifdef LOG_BYTE_ARRARY_ON
+#ifdef LOG_BYTE_ARRAY_ON
 #define LOG_TRACE_KEY_DATA_ARG(fmt, ...) printf(fmt, __VA_ARGS__)
 #define LOG_TRACE_KEY_DATA(fmt) printf(fmt)
 #else

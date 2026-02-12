@@ -8,7 +8,7 @@ function test_send_cmp_to_fake_ca
 {
     echo "Test sending a cmp massege to CA server"
     echo "Prepare test"
-    (cd demo && ./prepare_cmp_demo.sh &>/dev/null)
+    (cd demo/cmp && ./prepare_cmp_demo.sh &>/dev/null)
     sleep 2
     
     cd demo/cmp || exit 
@@ -21,6 +21,7 @@ function test_send_cmp_to_fake_ca
     assert_output_contains "CMP info: received CP"
     assert_output_contains "CMP DEBUG: successfully validated PBM-based CMP message protection"
     assert_output_contains "CMP DEBUG: validating CMP message"
+    assert_output_not_contains "CMP error: polling failed"
     assert_output_contains "Attribute Name:   Test Cert"
     return 0
 }
