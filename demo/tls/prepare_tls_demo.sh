@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -45,7 +45,7 @@ else
   PROFILE="ec"
 fi
 
-export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
+export GTA_STATE_DIRECTORY="$_WD/client/gta_api_state"
 
 if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
     echo "$GTA_STATE_DIRECTORY directory exists."
