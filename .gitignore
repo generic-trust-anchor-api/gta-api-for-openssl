@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -6,8 +6,10 @@
 build
 .vscode
 *.pem
-demo/CA
-demo/client/serialized_data
+*.srl
+demo/cmp/tmp
+!demo/cmp/cloud-pki/cmp_client_cert.pem
+demo/tls/client/gta_api_state
 tests/integration/tools/bash_test_tools
 deps/gta_api/lib_latest/*.a
 /nbproject
