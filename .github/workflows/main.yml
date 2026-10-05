@@ -8,15 +8,11 @@ on:
 
 jobs:
   build-test:
-    # With this version, the package sources need to be updated to install openssl 3.4.x
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Install dependencies
-        # After installing the dependencies we update the package source to install openssl 3.4.x
         run: |
-          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git strace curl unzip
-          sudo sed -i -e 's/noble/plucky/g' /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt-get update && sudo apt-get -y install openssl ca-certificates
+          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git strace curl unzip openssl ca-certificates libjitterentropy3-dev
       - name: Checkout gta-api-core
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
         with:
@@ -66,18 +62,19 @@ jobs:
       - name: Test gta-api-for-openssl
         env:
           TERM: xterm
+          CMP_CLIENT_KEY: ${{ secrets.CMP_CLIENT_KEY }}
         run: |
           ninja -C build test
       - name: Upload test logs as artifact
         if: failure()  
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
           name: test-logs
           path: /home/runner/work/gta-api-for-openssl/gta-api-for-openssl/build/meson-logs/testlog.txt
           retention-days: 7
 
   style-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout gta-api-for-openssl
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -87,7 +84,7 @@ jobs:
           clang-format --dry-run --Werror $FILES
 
   reuse-compliance-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout gta-api-for-openssl
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -95,7 +92,7 @@ jobs:
         uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 #v6.0.0
 
   shellcheck:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout gta-api-for-openssl
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1

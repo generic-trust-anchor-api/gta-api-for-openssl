@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
-function test_no_parameter_during_the_init
+function test_tls_default
 {
-    echo "Test the no parameter case"
+    echo "Test TLS with default parameters"
     echo "Prepare test"
     (cd demo/tls && ./prepare_tls_demo.sh &>/dev/null)
     echo "Start server"

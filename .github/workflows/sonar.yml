@@ -12,17 +12,13 @@ on:
 jobs:
   build:
     name: Build and analyze
-    # With this version, the package sources need to be updated to install openssl 3.4.x
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
       - name: Install dependencies
-        # After installing the dependencies we update the package source to install openssl 3.4.x
         run: |
-          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git curl unzip
-          sudo sed -i -e 's/noble/plucky/g' /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt-get update && sudo apt-get -y install openssl ca-certificates
+          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git curl unzip openssl ca-certificates libjitterentropy3-dev
       - name: Checkout gta-api-core
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
         with:
