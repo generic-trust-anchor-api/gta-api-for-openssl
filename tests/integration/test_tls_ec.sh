@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
-function test_ec_parameter_during_the_init
+function test_tls_ec
 {
-    echo "Test the ec value"
+    echo "Test the TLS with EC"
     echo "Prepare test"
     (cd demo/tls && ./prepare_tls_demo.sh ec &>/dev/null)
     echo "Start server"

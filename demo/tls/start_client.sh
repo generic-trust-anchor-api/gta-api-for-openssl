@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -13,7 +13,7 @@ fi
 echo "Working directory: $_WD"
 
 export OPENSSL_CONF=../openssl_config/openssl_provider_gta_and_default.cnf
-export GTA_STATE_DIRECTORY="$_WD/client/serialized_data"
+export GTA_STATE_DIRECTORY="$_WD/client/gta_api_state"
 
 echo "Provider config..."
 cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'
