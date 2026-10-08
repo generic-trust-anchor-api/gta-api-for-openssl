@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,6 +10,7 @@
 #include "config/gtaossl-provider-config.h"
 #include "logger/gtaossl-provider-logger.h"
 #include "stream/streams.h"
+#include <errno.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
@@ -18,11 +19,21 @@
 #include <openssl/prov_ssl.h>
 #include <openssl/provider.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#if !defined(SERIALIZATION_FOLDER)
-#error "SERIALIZATION_FOLDER not defined!"
+#if !defined(GTA_STATE_DIRECTORY)
+#error "GTA_STATE_DIRECTORY not defined!"
 #endif
+
+#define MAXLEN_PROFILE 160
+
+/* List of all profiles supported by gta-api-for-openssl */
+static char profiles_to_register[][MAXLEN_PROFILE] = {
+    "com.github.generic-trust-anchor-api.basic.tls",
+    "com.github.generic-trust-anchor-api.basic.signature"};
 
 extern const struct gta_function_list_t * gta_sw_provider_init(
     gta_context_handle_t,
@@ -31,6 +42,22 @@ extern const struct gta_function_list_t * gta_sw_provider_init(
     void **,
     void (**)(void *),
     gta_errinfo_t *);
+
+bool register_provider(
+    gta_instance_handle_t h_inst,
+    gtaio_istream_t * init_config,
+    gta_profile_name_t profile,
+    gta_errinfo_t * p_errinfo)
+{
+    struct gta_provider_info_t provider_info = {
+        .version = 0,
+        .type = GTA_PROVIDER_INFO_CALLBACK,
+        .provider_init = gta_sw_provider_init,
+        .provider_init_config = init_config,
+        .profile_info = {.profile_name = profile, .protection_properties = {0}, .priority = 0}};
+
+    return gta_register_provider(h_inst, &provider_info, p_errinfo);
+}
 
 /*----------------Function collections for TLS Handshake-----------------*/
 
@@ -54,6 +81,14 @@ extern const OSSL_DISPATCH ecdsa_keymgmt_functions[];
 
 extern const OSSL_DISPATCH gta_to_ecdsa_decoder_functions[];
 
+/*---------------------------RSA-----------------------------------------*/
+
+extern const OSSL_DISPATCH rsa_signature_functions[];
+
+extern const OSSL_DISPATCH rsa_keymgmt_functions[];
+
+extern const OSSL_DISPATCH gta_to_rsa_decoder_functions[];
+
 /*------------------Required OSSL provider functions----------------------*/
 
 static OSSL_FUNC_core_gettable_params_fn * core_gettable_params = NULL;
@@ -61,6 +96,9 @@ static OSSL_FUNC_core_get_params_fn * core_get_params = NULL;
 static OSSL_FUNC_core_new_error_fn * core_new_error = NULL;
 static OSSL_FUNC_core_set_error_debug_fn * core_set_error_debug = NULL;
 static OSSL_FUNC_core_vset_error_fn * core_vset_error = NULL;
+
+const char * env_name_of_ser_folder = "GTA_STATE_DIRECTORY";
+const char * default_value_of_ser_folder = GTA_STATE_DIRECTORY;
 
 /*-------------------------------------------------------------------------*/
 
@@ -212,7 +250,12 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
  * Signature functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
+#ifdef EC_ON
     {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
+#endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_signature_functions},
 #endif
@@ -224,6 +267,9 @@ static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
 static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
 #ifdef EC_ON
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta", dilithium_keymgmt_functions},
@@ -239,6 +285,12 @@ static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta,input=der,structure=GTA", gta_to_ecdsa_decoder_functions},
     //{ "EC:1.2.840.10045.2.1", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ec_decoder_functions},
     {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions},
+#endif
+#ifdef RSA_ON
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta,input=der,structure=GTA", gta_to_rsa_decoder_functions},
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
+     "provider=gta,input=der,structure=PrivateKeyInfo",
+     gta_to_rsa_decoder_functions},
 #endif
 #ifdef DILITHIUM_ON
     {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_dilithium_decoder_functions},
@@ -365,16 +417,14 @@ static OQS_SIGALG_CONSTANTS oqs_sigalg_list[] = {
 };
 
 #define OQS_SIGALG_ENTRY(tlsname, realname, algorithm, oid, idx)                                                       \
-    {                                                                                                                  \
-        OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                      \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                       \
-            OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),  \
-            OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),  \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),          \
-            OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),          \
-            OSSL_PARAM_END                                                                                             \
-    }
+    {OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                         \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                              \
+     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                       \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),         \
+     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),         \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),                 \
+     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),                 \
+     OSSL_PARAM_END}
 
 static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
     OQS_SIGALG_ENTRY(dilithium2, dilithium2, dilithium2, OQS_DILITHIUM_2_OID, 0),
@@ -681,17 +731,55 @@ int OSSL_provider_init(
         },
         NULL};
 
-    istream_from_buf_init(&init_config, SERIALIZATION_FOLDER, sizeof(SERIALIZATION_FOLDER) - 1);
+    const char * value = getenv(env_name_of_ser_folder);
 
-    struct gta_provider_info_t provider_info = {
-        .version = 0,
-        .type = GTA_PROVIDER_INFO_CALLBACK,
-        .provider_init = gta_sw_provider_init,
-        .provider_init_config = (gtaio_istream_t *)&init_config,
-        .profile_info = {
-            .profile_name = "com.github.generic-trust-anchor-api.basic.signature",
-            .protection_properties = {0},
-            .priority = 0}};
+    if (value == NULL || value[0] == '\0') {
+
+        LOG_INFO("Use the default configuration");
+        if (setenv(env_name_of_ser_folder, default_value_of_ser_folder, 1) != 0) {
+            LOG_ERROR("Not able to use the default configuration.");
+            return NOK;
+        }
+
+        value = getenv(env_name_of_ser_folder);
+
+    } else {
+        LOG_INFO("Use custom configuration");
+    }
+
+    LOG_TRACE("Create absolute path to avoid the path traversal");
+    char resolved[PATH_MAX];
+    if (value == NULL || realpath(value, resolved) == NULL) {
+        LOG_ERROR("Configuration problem: not able to resolve the path");
+        return NOK;
+    }
+
+    LOG_TRACE("Check to object is not file, symlink or device");
+    struct stat st;
+    if (lstat(resolved, &st) == NO_FILE_STAT_INFO) {
+        LOG_ERROR("Configuration problem: not path");
+        return NOK;
+    }
+
+    LOG_TRACE("Disable symlink");
+    if (S_ISLNK(st.st_mode)) {
+        LOG_ERROR("Configuration problem: folder must be a path");
+        return NOK;
+    }
+
+    LOG_TRACE("Check object is a directory");
+    if (!S_ISDIR(st.st_mode)) {
+        LOG_ERROR("Configuration problem: folder is not real directory");
+        return NOK;
+    }
+
+    LOG_TRACE("Check the permission");
+    if (access(resolved, X_OK) == NO_FILE_STAT_INFO) {
+        LOG_ERROR("Configuration problem: no access");
+        return NOK;
+    }
+
+    istream_from_buf_init(&init_config, resolved, sizeof(resolved) - 1);
 
     LOG_TRACE("Calling gta_instance_init");
     prov->h_inst = gta_instance_init(&inst_params, &errinfo);
@@ -700,10 +788,13 @@ int OSSL_provider_init(
         return clean_up(prov, ret, &errinfo);
     }
 
-    LOG_TRACE("Calling gta_register_provider");
-    if (1 != gta_register_provider(prov->h_inst, &provider_info, &errinfo)) {
-        LOG_ERROR("The gta_register_provider failed");
-        return clean_up(prov, ret, &errinfo);
+    LOG_TRACE("Calling register_provider");
+    /* register profiles for provider */
+    for (size_t i = 0; i < (sizeof(profiles_to_register) / sizeof(profiles_to_register[0])); ++i) {
+        if (!register_provider(prov->h_inst, (gtaio_istream_t *)&init_config, profiles_to_register[i], &errinfo)) {
+            LOG_ERROR("register_provider failed");
+            return clean_up(prov, ret, &errinfo);
+        }
     }
 
     if ((prov->libctx = OSSL_LIB_CTX_new_from_dispatch(handle, orig_in)) == NULL) {

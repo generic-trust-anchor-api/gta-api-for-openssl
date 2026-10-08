@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -104,7 +104,6 @@ typedef struct {
     gta_personality_name_t personality_name;
     char * pub_key;
     size_t pub_key_size;
-    int group_nid;
     GTA_PROVIDER_CTX * provctx;
 } GTA_PKEY;
 
