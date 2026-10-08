@@ -4,24 +4,24 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-export GTA_API_STATE_DIR="./client/serialized_data"
-export GTA_STATE_DIRECTORY=$GTA_API_STATE_DIR
-export CMP_CREDENTIAL_DIR=./cmp/cmp_example
-export OPENSSL_CONF=/src/openssl.cnf
-
-openssl list -providers
-if openssl list -provider gta -providers; then
-    echo "The gta provider installed... OK"
+if [[ "${WORK_DIR}" == "" ]]; then
+    export _WD="."
 else
-    echo "Missing gta provider"
-    exit 1
+    export _WD="${WORK_DIR}"
 fi
 
-if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
-    echo "The gta-cli installed... OK"
+echo "Working directory: $_WD"
+
+export GTA_API_STATE_DIR="$_WD/cmp/serialized_data"
+export GTA_STATE_DIRECTORY="$GTA_API_STATE_DIR"
+export CMP_CREDENTIAL_DIR="$_WD/cmp/cmp_example"
+export OPENSSL_CONF=../openssl_config/openssl.cnf
+
+if [[ -d "$_WD/cmp" ]]; then
+    echo "CMP (in $_WD) directory exists."
 else
-    echo "Missing gta-cli"
-    exit 1
+    echo "Create $_WD/cmp directory."
+    mkdir -p "$_WD/cmp"
 fi
 
 if [[ -d "$GTA_STATE_DIRECTORY" ]]; then
@@ -40,6 +40,21 @@ fi
 
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -f "$CMP_CREDENTIAL_DIR/"*
+
+openssl list -providers
+if openssl list -provider gta -providers; then
+    echo "The gta provider installed... OK"
+else
+    echo "Missing gta provider"
+    exit 1
+fi
+
+if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
+    echo "The gta-cli installed... OK"
+else
+    echo "Missing gta-cli"
+    exit 1
+fi
 
 echo "Create reference to GTA API private key for OpenSSL provider (personality_name,profile_name)"
 echo "-----BEGIN GTA PRIVATE KEY-----" > "$CMP_CREDENTIAL_DIR/gta-key.pem"
