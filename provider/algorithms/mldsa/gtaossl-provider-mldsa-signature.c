@@ -7,122 +7,24 @@
 #include "../../config/gtaossl-provider-config.h"
 #include "../../gtaossl-provider.h"
 #include "../../logger/gtaossl-provider-logger.h"
+#include "../../stream/streams.h"
+#include "../gtaossl-provider-base-keymgmt.h"
 #include "../gtaossl-provider-base-signature.h"
 #include <gta_api/gta_api.h>
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/objects.h>
 #include <openssl/params.h>
 #include <openssl/provider.h>
+#include <openssl/x509.h>
 #include <string.h>
 
-// static OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_mldsa_signature_digest_sign;
-#if 0
-static OSSL_FUNC_signature_digest_verify_init_fn gtaossl_provider_mldsa_signature_digest_verify_init;
-static OSSL_FUNC_signature_digest_verify_update_fn gtaossl_provider_mldsa_signature_digest_verify_update;
-static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_mldsa_signature_digest_verify_final;
-#endif
-
-/**
- * The function extends the base signature digest verify init.
- *
- * @param[in] ctx: signature context
- * @param[in] mdname: name of the digest
- * @param[in] provkey: provider key object, that can be converted to GTA_PKEY
- * @param[in] params: OSSL parameter collection to extend the context (optional),
- *                  currently, this parameter is not used
- *
- * @return OK = 1
- * @return NOK = 0
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- */
-#if 0
-static int gtaossl_provider_mldsa_signature_digest_verify_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[])
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    return gtaossl_provider_base_signature_digest_verify_init(ctx, mdname, provkey, params);
-}
-#endif
-
-/**
- * This function updates a signature operation but does not contain any implementation.
- * It is used only for debugging purposes.
- *
- * @param[in] ctx: signature context (not used)
- * @param[in] data: input byte array
- * @param[in] datalen: length of input byte array
- * @return OK = 1
- *
- * More details can be found at the following URL:
- * - https://docs.openssl.org/3.2/man7/provider-signature/#description
- */
-#if 0
-static int
-gtaossl_provider_mldsa_signature_digest_verify_update(void * ctx, const unsigned char * data, size_t datalen)
-{
-    LOG_INFO("Update signature digest");
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-
-    /* Currently unused */
-    (void)ctx;
-
-#ifdef LOG_B64_ON
-    char * dataBase64;
-    base_64_encode(data, datalen, &dataBase64);
-
-    LOG_TRACE_ARG("Input of %s : b64_enc(data)= %s", __func__, dataBase64);
-#endif
-
-    LOG_TRACE_ARG("Input of %s : datalen= %zu", __func__, datalen);
-
-    LOG_TRACE_KEY_DATA(LOG__EOM);
-    for (int i = 0; i < datalen; i++) {
-        LOG_TRACE_KEY_DATA_ARG("%02X ", (unsigned int)(data[i] & 0xFF));
-    }
-    LOG_TRACE_KEY_DATA(LOG__EOM);
-
-    return OK;
-}
-#endif
-
-/**
- * This function verify a signature but does not contain any implementation.
- * It is used only for debugging purposes.
- *
- *
- * @param[in] ctx: signature context (not used)
- * @param[in] sig: input byte array
- * @param[in] siglen: length of input byte array
- * @return OK = 1
- */
-#if 0
-static int
-gtaossl_provider_mldsa_signature_digest_verify_final(void * ctx, const unsigned char * sig, size_t siglen)
-{
-    LOG_INFO("Finalize signature digest");
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-
-    /* Currently unused */
-    (void)ctx;
-
-#ifdef LOG_B64_ON
-    char * signBase64;
-    base_64_encode(sig, siglen, &signBase64);
-
-    LOG_TRACE_ARG("Input of %s : b64_enc(sig)= %s", __func__, signBase64);
-#endif
-    LOG_TRACE_ARG("Input of %s : siglen= %zu", __func__, siglen);
-
-    return OK;
-}
-#endif
+static OSSL_FUNC_signature_get_ctx_params_fn gtaossl_provider_mldsa_signature_get_ctx_params;
+static OSSL_FUNC_signature_settable_ctx_params_fn gtaossl_provider_mldsa_signature_settable_ctx_params;
+static OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_mldsa_signature_digest_sign_init;
 
 static int gtaossl_provider_mldsa_signature_get_ctx_params(void * ctx, OSSL_PARAM params[])
 {
@@ -130,18 +32,42 @@ static int gtaossl_provider_mldsa_signature_get_ctx_params(void * ctx, OSSL_PARA
 
     /* Currently unused */
     (void)ctx;
-    (void)params;
 
-    return NOK;
-}
+    OSSL_PARAM * p = NULL;
 
-static int gtaossl_provider_mldsa_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    if (params == NULL) {
+        LOG_DEBUG("There are no parameters");
+        return OK;
+    }
 
-    /* Currently unused */
-    (void)ctx;
-    (void)params;
+    LOG_DEBUG("Locate algorithm ID parameter");
+    p = OSSL_PARAM_locate(params, OSSL_SIGNATURE_PARAM_ALGORITHM_ID);
+    if (p != NULL) {
+        unsigned char * aid = NULL;
+        int aid_len = 0;
+        int ret = 0;
+        ASN1_OBJECT * oid = OBJ_nid2obj(OBJ_sn2nid(PREQS_MLDSA));
+        X509_ALGOR * x509_algor = NULL;
+
+        if (NULL == oid) {
+            LOG_ERROR("OBJ lookup failed");
+            return NOK;
+        }
+
+        x509_algor = X509_ALGOR_new();
+        if (NULL == x509_algor) {
+            LOG_ERROR("X509 Algorithm Object creation failed");
+            return NOK;
+        }
+
+        X509_ALGOR_set0(x509_algor, oid, V_ASN1_UNDEF, NULL);
+        aid_len = i2d_X509_ALGOR(x509_algor, &aid);
+        ret = OSSL_PARAM_set_octet_string(p, aid, aid_len);
+
+        OPENSSL_free(aid);
+        X509_ALGOR_free(x509_algor);
+        return ret;
+    }
 
     return OK;
 }
@@ -164,32 +90,37 @@ static const OSSL_PARAM * gtaossl_provider_mldsa_signature_settable_ctx_params(v
     (void)ctx;
     (void)provctx;
 
-    static OSSL_PARAM settable[] = {OSSL_PARAM_utf8_string(OSSL_SIGNATURE_PARAM_DIGEST, NULL, 0), OSSL_PARAM_END};
+    static OSSL_PARAM settable[] = {OSSL_PARAM_END};
     return settable;
+}
+
+/* Check mdname before forwarding to base provider */
+static int gtaossl_provider_mldsa_signature_digest_sign_init(
+    void * ctx,
+    const char * mdname,
+    void * provkey,
+    const OSSL_PARAM params[])
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    LOG_TRACE_ARG("Input parameter mdname: %s", (NULL == mdname) ? "(null)" : mdname);
+
+    if ((NULL != mdname) && ('\0' != mdname[0])) {
+        LOG_ERROR_ARG("Digest %s unsupported for ML-DSA", mdname);
+        return NOK;
+    }
+
+    return gtaossl_provider_base_signature_sign_init(ctx, provkey, params);
 }
 
 const OSSL_DISPATCH mldsa_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))gtaossl_provider_base_signature_newctx},
     {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))gtaossl_provider_base_signature_freectx},
-#if 0
-    {OSSL_FUNC_SIGNATURE_SIGN_INIT, NULL},
-    {OSSL_FUNC_SIGNATURE_SIGN, NULL},
-#endif
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_digest_init},
-#if 0
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_FINAL, NULL},
-#endif
+    {OSSL_FUNC_SIGNATURE_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_sign_init},
+    {OSSL_FUNC_SIGNATURE_SIGN, (void (*)(void))gtaossl_provider_base_signature_sign},
+    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_mldsa_signature_digest_sign_init},
     {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_base_signature_digest_sign},
-#if 0
-    {OSSL_FUNC_SIGNATURE_VERIFY_INIT, NULL},
-    {OSSL_FUNC_SIGNATURE_VERIFY, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_INIT, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_UPDATE, NULL},
-    {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_FINAL, NULL},
-#endif
     {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_get_ctx_params},
     {OSSL_FUNC_SIGNATURE_GETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_gettable_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_set_ctx_params},
+    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_set_ctx_params},
     {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_settable_ctx_params},
     {0, NULL}};
