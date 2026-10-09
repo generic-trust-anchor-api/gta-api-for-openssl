@@ -1,0 +1,169 @@
+
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Global project definition for OpenSSL provider implementation
+project('GTA API for OpenSSL',
+        ['c'],
+        default_options : [
+            'c_std=gnu99',
+            'warning_level=3',
+            'buildtype=plain',
+        ],
+        license: 'Apache-2.0',
+        meson_version: '>=0.56.0',
+        version: '0.1'
+)
+
+# Import helper functionalities
+c_compiler = meson.get_compiler('c')
+
+# Define project path options from the configuration file (meson_options.txt)
+# Expected value of openssl_modules_dir is an absolute path. 
+openssl_modules_dir     = get_option('openssl_modules_dir')
+integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integration')
+
+# Default value of gta_state_directory 
+gta_state_directory     = get_option('gta_state_directory')  
+
+# Specify global compiler options
+add_project_arguments(
+   c_compiler.get_supported_arguments(
+        '-Wextra',
+        '-Wformat-truncation=0',
+        '-Wpedantic',
+        '-Wno-unused-function',
+        '-Wno-unused-parameter',
+   ),
+   language: 'c'
+)
+
+# Specify project compile options
+# Specify the GTA_STATE_DIRECTORY directory macro as compiler option
+GTA_STATE_DIRECTORY_c_args = [
+   '-DGTA_STATE_DIRECTORY="@0@"'.format(gta_state_directory),
+]
+add_project_arguments(GTA_STATE_DIRECTORY_c_args, language: 'c')
+
+# Activate PQC support
+if get_option('enable-post-quantum-crypto')
+   add_project_arguments('-DENABLE_PQC', language: 'c')
+endif
+
+# Logger configuration
+# Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4)
+add_project_arguments('-DLOG_LEVEL=@0@'.format(get_option('log_level').to_string()), language: 'c')
+
+# Enable to show base64 decoded data in the log
+if get_option('log_b64_on')
+   add_project_arguments('-DLOG_B64_ON', language: 'c')
+endif
+
+# Enable to show byte array data in the log
+if get_option('log_byte_array_on')
+   add_project_arguments('-DLOG_BYTE_ARRAY_ON', language: 'c')
+endif
+
+# Enable to show state of the for cycle in the log
+if get_option('log_for_cycle_on')
+   add_project_arguments('-DLOG_FOR_CYCLE_ON', language: 'c')
+endif
+
+# Select build type [release | debug]
+build_type = get_option('build_type')
+
+if build_type == 'release'
+   add_project_arguments(
+      c_compiler.get_supported_arguments(
+         '-O2',
+      ),
+      language: 'c'
+   )
+elif build_type == 'debug'
+   add_project_arguments(
+      c_compiler.get_supported_arguments(
+         '-O0',
+         '-g',
+      ),
+      language: 'c'
+   )
+endif
+
+# Dependencies
+deps = []
+# 1. OpenSSL 
+openssl_dep = dependency('openssl', required: true)
+deps += openssl_dep
+
+# 2. GTA API
+gta_dep = dependency('libgta', required: true)
+deps += gta_dep
+
+# 3. GTA API SW Provider (merged static lib, the file needs to be stored manually in a subfolder)
+gta_lib_dir = join_paths(meson.project_source_root(), 'deps', 'gta_api', 'lib_latest')
+gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
+deps += gta_sw_provider_normalized_dep
+
+# 4. Test dependency
+bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test_tools/master/bash_test_tools'
+
+# Define the sources
+py = find_program('python3')
+
+code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
+res = run_command(py, '-c', code, check: true)
+
+if res.returncode() != 0
+   error('Error occurred while collecting the source files: @0@'.format(res.stderr()))
+endif
+
+provider_src = []
+out = res.stdout().strip()
+if out != ''
+   provider_src = out.split('\n')
+endif
+
+message('Identified source files: ' + out)
+
+# Shared library configuration
+# The output is 'gta.so' (not 'libgta.so'), because name_prefix is empty 
+openssl_provider_with_gta = shared_module(
+   'gta',
+   provider_src,
+   name_prefix: '',
+   dependencies: deps,
+   install: true,
+   install_dir: openssl_modules_dir,
+)
+
+# Custom meson targets
+# Prepare test tools
+fetch_test_tools = custom_target(
+   'fetch_test_tools',
+   output: 'bash_test_tools',
+   command: [
+   'sh', '-c',
+   (
+      'mkdir -p "@0@/tools" && ' +
+      'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
+      'chmod +x "@0@/tools/bash_test_tools"'
+   )
+      .format(integration_test_dir, 
+              bash_test_tool_url)
+  ]
+)
+
+# Run test
+run_test_suit = find_program(meson.project_source_root() + '/tests/integration/run_tests.sh')
+test(
+   'run_test_suit',
+   run_test_suit,
+   workdir : integration_test_dir,
+   depends: [fetch_test_tools],
+   env: {
+      'WORK_DIR' : meson.project_build_root(),
+   },
+   is_parallel : false,
+   timeout : 0
+)

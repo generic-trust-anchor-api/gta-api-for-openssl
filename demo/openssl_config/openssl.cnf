@@ -15,7 +15,7 @@
 # This definition stops the following lines choking if HOME isn't
 # defined.
 HOME           = .
-DEFAULT_GROUPS = kyber768
+DEFAULT_GROUPS = X25519MLKEM768
 
  # Use this in order to automatically load providers.
 openssl_conf = openssl_init
@@ -71,7 +71,6 @@ ssl_conf = ssl_sect
 # List of providers to load
 [provider_sect]
 default = default_sect
-oqsprovider = oqsprovider_sect
 
 # The fips section name should match the section name inside the
 # included fipsmodule.cnf.
@@ -87,9 +86,6 @@ oqsprovider = oqsprovider_sect
 # problems including inability to remotely access the system.
 
 [default_sect]
-activate = 1
-
-[oqsprovider_sect]
 activate = 1
 
 ####################################################################

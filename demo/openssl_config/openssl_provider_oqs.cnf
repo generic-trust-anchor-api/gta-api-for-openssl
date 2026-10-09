@@ -60,7 +60,6 @@ providers = provider_sect
 # List of providers to load
 [provider_sect]
 default = default_sect
-oqsprovider = oqsprovider_sect
 
 # The fips section name should match the section name inside the
 # included fipsmodule.cnf.
@@ -75,9 +74,6 @@ oqsprovider = oqsprovider_sect
 # OpenSSL may not work correctly which could lead to significant system
 # problems including inability to remotely access the system.
 [default_sect]
-activate = 1
-
-[oqsprovider_sect]
 activate = 1
 
 
