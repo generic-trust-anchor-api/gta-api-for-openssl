@@ -46,19 +46,9 @@ GTA_STATE_DIRECTORY_c_args = [
 ]
 add_project_arguments(GTA_STATE_DIRECTORY_c_args, language: 'c')
 
-# Activate elliptic curve support
-if get_option('ec_on')
-   add_project_arguments('-DEC_ON', language: 'c')
-endif
-
-# Activate RSA support
-if get_option('rsa_on')
-   add_project_arguments('-DRSA_ON', language: 'c')
-endif
-
-# Activate dilithium (pqc) support
-if get_option('dilithium_on')
-   add_project_arguments('-DDILITHIUM_ON', language: 'c')
+# Activate PQC support
+if get_option('enable-post-quantum-crypto')
+   add_project_arguments('-DENABLE_PQC', language: 'c')
 endif
 
 # Logger configuration
@@ -106,9 +96,9 @@ deps = []
 openssl_dep = dependency('openssl', required: true)
 deps += openssl_dep
 
-# Post quantum support is deactivated
-dilithium_on = get_option('dilithium_on')
-if dilithium_on
+# Post quantum support is optional
+enable_post_quantum_crypto = get_option('enable-post-quantum-crypto')
+if enable_post_quantum_crypto
    # 2. Open Quantum Safe low level library (liboqs) (build dependency | static library)
    oqs_library_dep = dependency('liboqs', required: true)
    deps += oqs_library_dep
@@ -118,7 +108,7 @@ if dilithium_on
    deps += oqs_provider_dep
 
    # 4. Mathematical library
-   dep_math = dependency('libm', required: false) 
+   dep_math = dependency('libm', required: false)
    deps += dep_math
 endif
 
@@ -193,33 +183,3 @@ test(
    is_parallel : false,
    timeout : 0
 )
-
-# Meson popular commands:
-# 1) Create build folder and setup project (<build_dir> needs to replaced with a custom value):
-# meson setup <build_dir> -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
-
-# 2) Build project:
-# meson compile -C <build_dir>
-# or
-# ninja -C <build_dir>
-
-# 3) Install provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C <build_dir> install
-# or
-# sudo ninja -C <build_dir> install
-
-# 4) Uninstall provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C <build_dir> uninstall
-# or
-# sudo ninja -C <build_dir> uninstall
-
-# 5) Run tests
-# meson test -C <build_dir>
-# or
-# ninja -C <build_dir> test
-
-# 6) Remove build directory:
-# rm -rf <build_dir>
-
-# Reconfigure project:
-# meson setup --wipe <build_dir>

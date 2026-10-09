@@ -55,7 +55,7 @@ jobs:
           unzip deps/gta_api/lib_latest/libgta_sw_provider_merged.zip -d deps/gta_api/lib_latest
       - name: Build and install gta-api-for-openssl
         run: |
-          meson setup build -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+          meson setup build
           ninja -C build
           sudo ninja -C build install
           sudo ldconfig
