@@ -435,7 +435,7 @@ static int oqs_sigalg_capability(OSSL_CALLBACK * cb, void * arg)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
-    // Relaxed assertion for the case that not all algorithms are enabled in liboqs:
+    // Relaxed assertion for the case that not all configured algorithms are exposed.
     // assert(OSSL_NELEM(oqs_param_sigalg_list) <= OSSL_NELEM(oqs_sigalg_list));
     for (size_t i = 0; i < OSSL_NELEM(oqs_param_sigalg_list); i++) {
         if (!cb(oqs_param_sigalg_list[i], arg)) {
