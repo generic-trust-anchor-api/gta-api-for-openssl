@@ -17,11 +17,11 @@
 #include <openssl/provider.h>
 #include <string.h>
 
-// static OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_dilithium_signature_digest_sign;
+// static OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_mldsa_signature_digest_sign;
 #if 0
-static OSSL_FUNC_signature_digest_verify_init_fn gtaossl_provider_dilithium_signature_digest_verify_init;
-static OSSL_FUNC_signature_digest_verify_update_fn gtaossl_provider_dilithium_signature_digest_verify_update;
-static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_dilithium_signature_digest_verify_final;
+static OSSL_FUNC_signature_digest_verify_init_fn gtaossl_provider_mldsa_signature_digest_verify_init;
+static OSSL_FUNC_signature_digest_verify_update_fn gtaossl_provider_mldsa_signature_digest_verify_update;
+static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_mldsa_signature_digest_verify_final;
 #endif
 
 /**
@@ -40,7 +40,7 @@ static OSSL_FUNC_signature_digest_verify_final_fn gtaossl_provider_dilithium_sig
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
  */
 #if 0
-static int gtaossl_provider_dilithium_signature_digest_verify_init(
+static int gtaossl_provider_mldsa_signature_digest_verify_init(
     void * ctx,
     const char * mdname,
     void * provkey,
@@ -65,7 +65,7 @@ static int gtaossl_provider_dilithium_signature_digest_verify_init(
  */
 #if 0
 static int
-gtaossl_provider_dilithium_signature_digest_verify_update(void * ctx, const unsigned char * data, size_t datalen)
+gtaossl_provider_mldsa_signature_digest_verify_update(void * ctx, const unsigned char * data, size_t datalen)
 {
     LOG_INFO("Update signature digest");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
@@ -104,7 +104,7 @@ gtaossl_provider_dilithium_signature_digest_verify_update(void * ctx, const unsi
  */
 #if 0
 static int
-gtaossl_provider_dilithium_signature_digest_verify_final(void * ctx, const unsigned char * sig, size_t siglen)
+gtaossl_provider_mldsa_signature_digest_verify_final(void * ctx, const unsigned char * sig, size_t siglen)
 {
     LOG_INFO("Finalize signature digest");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
@@ -124,7 +124,7 @@ gtaossl_provider_dilithium_signature_digest_verify_final(void * ctx, const unsig
 }
 #endif
 
-static int gtaossl_provider_dilithium_signature_get_ctx_params(void * ctx, OSSL_PARAM params[])
+static int gtaossl_provider_mldsa_signature_get_ctx_params(void * ctx, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
@@ -135,7 +135,7 @@ static int gtaossl_provider_dilithium_signature_get_ctx_params(void * ctx, OSSL_
     return NOK;
 }
 
-static int gtaossl_provider_dilithium_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
+static int gtaossl_provider_mldsa_signature_set_ctx_params(void * ctx, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
@@ -156,7 +156,7 @@ static int gtaossl_provider_dilithium_signature_set_ctx_params(void * ctx, const
  * @param[in] provctx: provider context (not used)
  * @return array of OSSL_PARAMs
  */
-static const OSSL_PARAM * gtaossl_provider_dilithium_signature_settable_ctx_params(void * ctx, void * provctx)
+static const OSSL_PARAM * gtaossl_provider_mldsa_signature_settable_ctx_params(void * ctx, void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
@@ -168,7 +168,7 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_signature_settable_ctx_para
     return settable;
 }
 
-const OSSL_DISPATCH dilithium_signature_functions[] = {
+const OSSL_DISPATCH mldsa_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))gtaossl_provider_base_signature_newctx},
     {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))gtaossl_provider_base_signature_freectx},
 #if 0
@@ -188,8 +188,8 @@ const OSSL_DISPATCH dilithium_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_UPDATE, NULL},
     {OSSL_FUNC_SIGNATURE_DIGEST_VERIFY_FINAL, NULL},
 #endif
-    {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_dilithium_signature_get_ctx_params},
+    {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_get_ctx_params},
     {OSSL_FUNC_SIGNATURE_GETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_gettable_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_dilithium_signature_set_ctx_params},
-    {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_dilithium_signature_settable_ctx_params},
+    {OSSL_FUNC_SIGNATURE_SET_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_set_ctx_params},
+    {OSSL_FUNC_SIGNATURE_SETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_settable_ctx_params},
     {0, NULL}};
