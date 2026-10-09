@@ -16,7 +16,7 @@ Current limitations in OpenSSL provider:
 * CA certificate currently not protected using GTA API.
 * No proper error handling.
 * Probably some memory leaks.
-* Currently supports only ECC (tested with NIST P-256) and Dilithium2 (needs to be updated)
+* Currently supports only ECC (tested with NIST P-256) and ML-DSA-65 / Dilithium2 style GTA integration.
 
 Additional feature:
 * Send certificate signing request with [RFC 4210](https://datatracker.ietf.org/doc/html/rfc4210) protocol.
@@ -53,7 +53,7 @@ The following tools and libraries need to be installed for build and run the dem
 - __GTA API Software Provider:__ Generic Trust Anchor API SW Provider. This project implements a Software-based Provider for the Generic Trust Anchor API and can be used by gta-api-core.
     * A `merged static library` is needed for the OpenSSL Provider. It can be downloaded as build artifact from the [GTA Software Provider](https://github.com/generic-trust-anchor-api/gta-api-sw-provider.git) project.
     * It is intended for development only and not for productive use.
-    * In case of Dilithium 2, the post quantum crypto needs to be activated (in the gta-api-sw-provider/__meson_options.txt__):
+    * For the PQC demo profiles, the post quantum crypto support needs to be activated in the GTA API SW provider (in the gta-api-sw-provider/__meson_options.txt__):
         ```
         # SPDX-FileCopyrightText: Copyright 2024 Siemens
         #
@@ -72,7 +72,7 @@ The following tools and libraries need to be installed for build and run the dem
     * __meson:__ Python-based build system generator like Automake or CMake
     * __ninja-build:__ Build tool like make
     * __build-essential:__ Meta-package to install a full build environment on Debian-based systems
-    * __libssl-dev:__ Development package for OpenSSL
+    * __libssl-dev:__ Development package for OpenSSL 3.5 or newer
     * __pkg-config:__ Tool required by meson to figure out compiler/linker options for library dependencies
   
     Install command in case of the debian based Linux: 
@@ -82,7 +82,7 @@ The following tools and libraries need to be installed for build and run the dem
 
 ### Runtime dependencies 
 
-- __OpenSSL 3.2.x (or newer):__ OpenSSL 3.2.0 needs to be installed on the system.
+- __OpenSSL 3.5.x (or newer):__ OpenSSL 3.5.0 or newer needs to be installed on the system for native PQC support.
 
 - __GTA CLI:__ GTA API command line interface to call the GTA SW provider.
     * It is intended for development only and not for productive use.
