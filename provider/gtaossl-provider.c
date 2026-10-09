@@ -71,8 +71,6 @@ extern const OSSL_DISPATCH mldsa_keymgmt_functions[];
 
 extern const OSSL_DISPATCH gta_to_mldsa_decoder_functions[];
 
-extern const OSSL_DISPATCH mldsa_der_decoder_functions[];
-
 /*---------------------------ECDSA---------------------------------------*/
 
 extern const OSSL_DISPATCH ecdsa_signature_functions[];
@@ -282,7 +280,6 @@ static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
      gta_to_rsa_decoder_functions},
 #ifdef ENABLE_PQC
     {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions},
-    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=SubjectPublicKeyInfo", mldsa_der_decoder_functions},
 #endif
     {NULL, NULL, NULL}};
 
