@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 HOME           = .
-DEFAULT_GROUPS = kyber768
+DEFAULT_GROUPS = X25519MLKEM768
 
 openssl_conf = openssl_init
 
@@ -32,11 +32,8 @@ ssl_conf = ssl_sect
 
 [provider_sect]
 default = default_sect
-oqsprovider = oqsprovider_sect
 
 [default_sect]
-activate = 1
-[oqsprovider_sect]
 activate = 1
 
 [ ca ]

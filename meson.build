@@ -96,32 +96,16 @@ deps = []
 openssl_dep = dependency('openssl', required: true)
 deps += openssl_dep
 
-# Post quantum support is optional
-enable_post_quantum_crypto = get_option('enable-post-quantum-crypto')
-if enable_post_quantum_crypto
-   # 2. Open Quantum Safe low level library (liboqs) (build dependency | static library)
-   oqs_library_dep = dependency('liboqs', required: true)
-   deps += oqs_library_dep
-
-   # 3. Open Quantum Safe OpenSSL provider (oqs-provider) (runtime dependency | dyn library)
-   oqs_provider_dep = dependency('oqs-provider', required: true)
-   deps += oqs_provider_dep
-
-   # 4. Mathematical library
-   dep_math = dependency('libm', required: false)
-   deps += dep_math
-endif
-
-# 5. GTA API
+# 2. GTA API
 gta_dep = dependency('libgta', required: true)
 deps += gta_dep
 
-# 6. GTA API SW Provider (normalized, the file needs to be stored manually in a subfolder)
+# 3. GTA API SW Provider (merged static lib, the file needs to be stored manually in a subfolder)
 gta_lib_dir = join_paths(meson.project_source_root(), 'deps', 'gta_api', 'lib_latest')
 gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
 deps += gta_sw_provider_normalized_dep
 
-# 7. Test dependency
+# 4. Test dependency
 bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test_tools/master/bash_test_tools'
 
 # Define the sources

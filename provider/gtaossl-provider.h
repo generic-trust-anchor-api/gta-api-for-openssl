@@ -53,16 +53,14 @@
  * provider\algorithms\dilithium\gtaossl-provider-dilithium-types.c
  *
  * @note The proof-of-concept provider realizes only the client-side TLS connection.
- *       The certificate preparation script and server side use the open-quantum-safe/oqs-provider.
+ *       The certificate preparation script and server side rely on OpenSSL native algorithms.
  *
  * @note The default setup of the GTA API software provider does not contain a post-quantum
  *       solution. It needs to be activated during the build of the SW provider.
  *
- * @note The proof-of-concept provider is implemented and tested with OpenSSL 3.2.0
+ * @note The proof-of-concept provider is implemented and tested with OpenSSL 3.5.0
  *
  * OpenSSL provider basics: https://docs.openssl.org/3.2/man7/provider/
- *
- * OQS Provider: https://github.com/open-quantum-safe/oqs-provider
  *
  * GTA API Core: https://github.com/generic-trust-anchor-api/gta-api-core
  *
