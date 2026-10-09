@@ -251,7 +251,7 @@ static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
     {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
     {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta", mldsa_signature_functions},
+    {PREQS_MLDSA, "provider=gta,gta.signature", mldsa_signature_functions},
 #endif
     {NULL, NULL, NULL}};
 
@@ -262,7 +262,7 @@ static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
     {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta", mldsa_keymgmt_functions},
+    {PREQS_MLDSA, "provider=gta", mldsa_keymgmt_functions},
 #endif
     {NULL, NULL, NULL}};
 
@@ -272,14 +272,14 @@ static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
 static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
     {"DER", "provider=gta,input=pem", base_decoder_functions},
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta,input=der,structure=GTA", gta_to_ecdsa_decoder_functions},
-    //{ "EC:1.2.840.10045.2.1", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ec_decoder_functions},
     {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions},
     {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta,input=der,structure=GTA", gta_to_rsa_decoder_functions},
     {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
      "provider=gta,input=der,structure=PrivateKeyInfo",
      gta_to_rsa_decoder_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions},
+    {PREQS_MLDSA, "provider=gta,input=der,structure=GTA", gta_to_mldsa_decoder_functions},
+    {PREQS_MLDSA, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions},
 #endif
     {NULL, NULL, NULL}};
 
@@ -380,75 +380,11 @@ static void gtaossl_provider_unquery_operation(void * provctx, int id, const OSS
     return;
 }
 
-typedef struct oqs_sigalg_constants_st {
-    unsigned int code_point; /* Code point */
-    unsigned int secbits;    /* Bits of security */
-    int mintls;              /* Minimum TLS version, -1 unsupported */
-    int maxtls;              /* Maximum TLS version (or 0 for undefined) */
-} OQS_SIGALG_CONSTANTS;
-
-static OQS_SIGALG_CONSTANTS oqs_sigalg_list[] = {
-    // Ad-hoc assignments - take from OQS generate data structures.
-    // OQS_TEMPLATE_FRAGMENT_SIGALG_ASSIGNMENTS_START
-    {0xfea0, 128, TLS1_3_VERSION, 0}, {0xfea1, 128, TLS1_3_VERSION, 0}, {0xfea2, 128, TLS1_3_VERSION, 0},
-    {0xfea3, 192, TLS1_3_VERSION, 0}, {0xfea4, 192, TLS1_3_VERSION, 0}, {0xfea5, 256, TLS1_3_VERSION, 0},
-    {0xfea6, 256, TLS1_3_VERSION, 0}, {0xfeae, 128, TLS1_3_VERSION, 0}, {0xfeaf, 128, TLS1_3_VERSION, 0},
-    {0xfeb0, 128, TLS1_3_VERSION, 0}, {0xfeb1, 256, TLS1_3_VERSION, 0}, {0xfeb2, 256, TLS1_3_VERSION, 0},
-    {0xfeb3, 128, TLS1_3_VERSION, 0}, {0xfeb4, 128, TLS1_3_VERSION, 0}, {0xfeb5, 128, TLS1_3_VERSION, 0},
-    {0xfeb6, 128, TLS1_3_VERSION, 0}, {0xfeb7, 128, TLS1_3_VERSION, 0}, {0xfeb8, 128, TLS1_3_VERSION, 0},
-    {0xfeb9, 192, TLS1_3_VERSION, 0}, {0xfeba, 192, TLS1_3_VERSION, 0}, {0xfec2, 128, TLS1_3_VERSION, 0},
-    {0xfec3, 128, TLS1_3_VERSION, 0}, {0xfec4, 128, TLS1_3_VERSION, 0},
-    // OQS_TEMPLATE_FRAGMENT_SIGALG_ASSIGNMENTS_END
-};
-
-#define OQS_SIGALG_ENTRY(tlsname, realname, algorithm, oid, idx)                                                       \
-    {OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_IANA_NAME, #tlsname, sizeof(#tlsname)),                         \
-     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_NAME, #tlsname, sizeof(#tlsname)),                              \
-     OSSL_PARAM_utf8_string(OSSL_CAPABILITY_TLS_SIGALG_OID, #oid, sizeof(#oid)),                                       \
-     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_CODE_POINT, (unsigned int *)&oqs_sigalg_list[idx].code_point),         \
-     OSSL_PARAM_uint(OSSL_CAPABILITY_TLS_SIGALG_SECURITY_BITS, (unsigned int *)&oqs_sigalg_list[idx].secbits),         \
-     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MIN_TLS, (unsigned int *)&oqs_sigalg_list[idx].mintls),                 \
-     OSSL_PARAM_int(OSSL_CAPABILITY_TLS_SIGALG_MAX_TLS, (unsigned int *)&oqs_sigalg_list[idx].maxtls),                 \
-     OSSL_PARAM_END}
-
-static const OSSL_PARAM oqs_param_sigalg_list[][12] = {
-    OQS_SIGALG_ENTRY(dilithium2, dilithium2, dilithium2, OQS_DILITHIUM_2_OID, 0),
-};
-
-#define OSSL_NELEM(x) (sizeof(x) / sizeof((x)[0]))
-
-/**
- * The following for loop can fix the error:
- *
- * error setting certificate
- * 807B68E7D37F0000:error:0A0000F7:SSL routines:ssl_set_cert:unknown certificate type:ssl/ssl_rsa.c:257:
- *
- * @param[in] cb: callback function
- * @param[in] arg: arguments of the callback function
- * @return OK = 1
- * @return NOK = 0
- */
-static int oqs_sigalg_capability(OSSL_CALLBACK * cb, void * arg)
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-
-    // Relaxed assertion for the case that not all configured algorithms are exposed.
-    // assert(OSSL_NELEM(oqs_param_sigalg_list) <= OSSL_NELEM(oqs_sigalg_list));
-    for (size_t i = 0; i < OSSL_NELEM(oqs_param_sigalg_list); i++) {
-        if (!cb(oqs_param_sigalg_list[i], arg)) {
-            LOG_ERROR("Error during the configuration of the callback function for sigalg capability");
-            return NOK;
-        }
-    }
-
-    return OK;
-}
-
 /**
  * Get provider capabilities.
  *
  * @param[in] provctx: provider context
- * @param[in] capability: capability string ("TLS-GROUP" and "TLS-SIGALG")
+ * @param[in] capability: capability string
  * @param[in] cb: callback function
  * @param[in] arg: arguments of the callback function
  * @return OK = 1
@@ -461,16 +397,13 @@ int gtaossl_provider_get_capabilities(void * provctx, const char * capability, O
 
     /* Currently unused */
     (void)provctx;
+    (void)cb;
+    (void)arg;
 
     if (strcasecmp(capability, "TLS-GROUP") == 0) {
         LOG_TRACE("In case of TLS-GROUP capability");
         LOG_WARN("Ignore to set callback function for TLS-GROUP capability");
         return OK;
-    }
-
-    if (strcasecmp(capability, "TLS-SIGALG") == 0) {
-        LOG_TRACE("In case of TLS-SIGALG capability");
-        return oqs_sigalg_capability(cb, arg);
     }
 
     LOG_ERROR_ARG("We don't support this capability [%s]", capability);
@@ -588,12 +521,6 @@ static int clean_up(GTA_PROVIDER_CTX * prov, int ret, gta_errinfo_t * errinfo)
     return ret;
 }
 
-#define OQS_OID_CNT 2
-const char * oqs_oid_alg_list[OQS_OID_CNT] = {
-    OQS_DILITHIUM_2_OID,
-    OQS_DILITHIUM_2,
-};
-
 /**
  * Provider initialization function, called by OSSL's
  * OSSL_provider_init(), which is the entry point of the provider.
@@ -631,73 +558,6 @@ int OSSL_provider_init(
     prov->status = 1;
 
     const OSSL_DISPATCH * orig_in = in;
-    OSSL_FUNC_core_obj_create_fn * c_obj_create = NULL;
-    OSSL_FUNC_core_obj_add_sigid_fn * c_obj_add_sigid = NULL;
-
-    for (; in->function_id != 0; in++) {
-
-#ifdef LOG_FOR_CYCLE_ON
-        LOG_TRACE_ARG("Value: in->function_id=%d", in->function_id);
-#endif
-
-        switch (in->function_id) {
-        case OSSL_FUNC_CORE_OBJ_CREATE:
-            c_obj_create = OSSL_FUNC_core_obj_create(in);
-            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_CREATE function");
-            break;
-        case OSSL_FUNC_CORE_OBJ_ADD_SIGID:
-            c_obj_add_sigid = OSSL_FUNC_core_obj_add_sigid(in);
-            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_ADD_SIGID function");
-            break;
-        default:
-#ifdef LOG_FOR_CYCLE_ON
-            LOG_TRACE("Skip function");
-#endif
-            break;
-        }
-    }
-
-    if (c_obj_create == NULL) {
-        LOG_ERROR("OSS Create object function not initialized");
-        return NOK;
-    }
-
-    if (c_obj_add_sigid == NULL) {
-        LOG_ERROR("OSS Add sig ID function not initialized");
-        return NOK;
-    }
-
-    /* The next for cycle can fix the following error:
-     *
-     * error setting certificate
-     * 804B0D2CC17F0000:error:03000072:digital envelope routines:X509_PUBKEY_get0:decode
-     * error:crypto/x509/x_pubkey.c:464: 804B0D2CC17F0000:error:0A00018F:SSL routines:SSL_CTX_use_certificate:ee key too
-     * small:ssl/ssl_rsa.c:239:
-     */
-    LOG_INFO("Insert all OIDs to the global objects list");
-
-    for (int i = 0; i < OQS_OID_CNT; i += 2) {
-        if (!c_obj_create(handle, oqs_oid_alg_list[i], oqs_oid_alg_list[i + 1], oqs_oid_alg_list[i + 1])) {
-            LOG_ERROR_ARG("Error registering NID for %s", oqs_oid_alg_list[i + 1]);
-        }
-
-        /* Create object (NID) again to avoid setup corner case problems
-         * see https://github.com/openssl/openssl/discussions/21903
-         * Not testing for errors is intentional.
-         * At least one core version hangs up; so don't do this there:
-         */
-
-        if (!c_obj_add_sigid(handle, oqs_oid_alg_list[i + 1], "", oqs_oid_alg_list[i + 1])) {
-            LOG_ERROR_ARG("Error registering %s with no hash", oqs_oid_alg_list[i + 1]);
-        }
-
-        if (OBJ_sn2nid(oqs_oid_alg_list[i + 1]) != 0) {
-            LOG_TRACE_ARG(
-                "Successfully registered %s with NID %d", oqs_oid_alg_list[i + 1], OBJ_sn2nid(oqs_oid_alg_list[i + 1]));
-        } else {
-            LOG_ERROR_ARG("Impossible error: NID unregistered for %s.", oqs_oid_alg_list[i + 1]);
-        }
-    }
 
     LOG_TRACE("Call GTA API instance init and register all necessary provider/profiles");
     gta_errinfo_t errinfo = 0;

@@ -47,7 +47,7 @@ static int gtaossl_provider_mldsa_gta_decoder_decode(
     LOG_INFO("Decode GTA object to mldsa object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     return gtaossl_provider_base_gta_decoder_decode(
-        ctx, cin, selection, object_cb, object_cbarg, pw_cb, pw_cbarg, OQS_DILITHIUM_2);
+        ctx, cin, selection, object_cb, object_cbarg, pw_cb, pw_cbarg, PREQS_MLDSA);
 }
 
 /**

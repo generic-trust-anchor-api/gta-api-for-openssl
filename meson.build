@@ -154,8 +154,23 @@ bash_test_tools_path = join_paths(
 )
 
 # Define the sources
-code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
-res = run_command(py, '-c', code, check: true)
+collect_provider_sources = '''import glob
+import sys
+
+enable_pqc = sys.argv[1] == 'true'
+
+for path in glob.glob('provider/**/*.c', recursive=True):
+   if not enable_pqc and path.startswith('provider/algorithms/mldsa/'):
+      continue
+   print(path)
+'''
+res = run_command(
+   py,
+   '-c',
+   collect_provider_sources,
+   get_option('enable-post-quantum-crypto').to_string(),
+   check: true,
+)
 
 if res.returncode() != 0
    error('Error occurred while collecting the source files: @0@'.format(res.stderr()))

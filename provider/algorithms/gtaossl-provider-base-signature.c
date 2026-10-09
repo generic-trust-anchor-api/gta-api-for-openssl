@@ -121,13 +121,10 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
 }
 
 /**
- * Initialization of the signing context.
+ * Common initialization helper used by both the digest-specific and non-digest
+ * signature init operations.
  */
-int gtaossl_provider_base_signature_digest_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[])
+static int base_signature_init_impl(void * ctx, const char * mdname, void * provkey, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Input parameter mdname: %s", mdname);
@@ -171,7 +168,24 @@ int gtaossl_provider_base_signature_digest_init(
     return OK;
 }
 
-int gtaossl_provider_base_signature_digest_sign(
+int gtaossl_provider_base_signature_sign_init(void * ctx, void * provkey, const OSSL_PARAM params[])
+{
+    return base_signature_init_impl(ctx, NULL, provkey, params);
+}
+
+/**
+ * Initialization of the signing context.
+ */
+int gtaossl_provider_base_signature_digest_init(
+    void * ctx,
+    const char * mdname,
+    void * provkey,
+    const OSSL_PARAM params[])
+{
+    return base_signature_init_impl(ctx, mdname, provkey, params);
+}
+
+static int base_signature_sign_impl(
     void * ctx,
     unsigned char * sig,
     size_t * siglen,
@@ -228,6 +242,28 @@ int gtaossl_provider_base_signature_digest_sign(
     LOG_TRACE_ARG("Input of %s : datalen= %zu", __func__, datalen);
 
     return OK;
+}
+
+int gtaossl_provider_base_signature_sign(
+    void * ctx,
+    unsigned char * sig,
+    size_t * siglen,
+    size_t sigsize,
+    const unsigned char * data,
+    size_t datalen)
+{
+    return base_signature_sign_impl(ctx, sig, siglen, sigsize, data, datalen);
+}
+
+int gtaossl_provider_base_signature_digest_sign(
+    void * ctx,
+    unsigned char * sig,
+    size_t * siglen,
+    size_t sigsize,
+    const unsigned char * data,
+    size_t datalen)
+{
+    return base_signature_sign_impl(ctx, sig, siglen, sigsize, data, datalen);
 }
 
 /**

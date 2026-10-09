@@ -83,10 +83,18 @@ OSSL_FUNC_signature_freectx_fn gtaossl_provider_base_signature_freectx;
  * int gtaossl_provider_base_signature_digest_init(void *ctx, const char *mdname, void *provkey, const OSSL_PARAM
  * params[])
  */
+OSSL_FUNC_signature_sign_init_fn gtaossl_provider_base_signature_sign_init;
+
+/**
+ * Initialization of the signing context:
+ *
+ * This variant is used for algorithms that do not have a digest-specific
+ * init step and only require the generic provider-signature context setup.
+ */
 OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_base_signature_digest_init;
 
 /**
- * The function does the actual signing.
+ * The functions do the actual signing.
  *
  * @param[in] ctx: signature context
  * @param[in] sigsize: expected signature size in bytes (from OpenSSL)
@@ -101,6 +109,7 @@ OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_base_signature_digest_i
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-signature/#description
  */
+OSSL_FUNC_signature_sign_fn gtaossl_provider_base_signature_sign;
 OSSL_FUNC_signature_digest_sign_fn gtaossl_provider_base_signature_digest_sign;
 
 /**
