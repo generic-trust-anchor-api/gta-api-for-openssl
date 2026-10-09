@@ -40,9 +40,9 @@ if [[ "$1" = "ec" ]]; then
 elif [[ "$1" = "rsa" ]]; then
   echo "Generate RSA key materials..."
   PROFILE="rsa"
-elif [[ "$1" = "dilithium" ]]; then
+elif [[ "$1" = "mldsa" ]]; then
   echo "Generate PQ key materials..."
-  PROFILE="dilithium"
+  PROFILE="ml-dsa"
 else
   echo "Set EC key materials as default..."
   PROFILE="ec"
@@ -72,18 +72,6 @@ else
     exit 1
 fi
 
-if [[ "$PROFILE" = "dilithium" ]]; then
-    if openssl list -provider oqsprovider -providers; then
-        echo "The oqsprovider installed... OK"
-    else
-        echo "Missing oqsprovider provider"
-        echo "Copy oqsprovider objeect from the ./demo/openssl_config to the /usr/lib/x86_64-linux-gnu/ossl-modules and/or /usr/local/lib64/ossl-modules"
-        echo "or define path property of the oqsprovider.so file in the ../../openssl_config/openssl_provider_oqs.cnf".
-        echo "For example: module = <path of so file>"
-        exit 1
-    fi
-fi
-
 rm -rf "$_WD/CA"
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -rf "$_WD/client/"*.pem
@@ -109,25 +97,17 @@ if [[ "$PROFILE" = "rsa" ]]; then
     openssl x509 -req -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365 -CAcreateserial -in "$_WD/server/csr.pem" -out "$_WD/server/cert.pem"
 fi
 
-if [[ "$PROFILE" = "dilithium" ]]; then
-    SIG_ALG="dilithium"
-    export OPENSSL_CONF=./openssl_config/openssl.cnf
-    OPENSSL_CONF_CA=./openssl_config/openssl_ca.cnf
-    echo "Signature ALGORITHM: $SIG_ALG"
-
+if [[ "$PROFILE" = "ml-dsa" ]]; then
     echo "Create CA credentials"
-    openssl req -provider oqsprovider -provider default -x509 -new -newkey ${SIG_ALG} -keyout "$_WD/CA/CAkey.pem" -out "$_WD/CA/CAcert.pem" -nodes -subj "/CN=Demo CA" -days 365 -config ${OPENSSL_CONF_CA}
+    openssl req -x509 -new -newkey ML-DSA-65 -keyout "$_WD/CA/CAkey.pem" -out "$_WD/CA/CAcert.pem" -nodes -subj "/CN=Demo CA" -days 365
 
     echo "Create server credentials"
-    openssl req -provider oqsprovider -provider default -newkey ${SIG_ALG} -keyout "$_WD/server/key.pem" -out "$_WD/server/csr.pem" -pubkey -nodes -subj "/CN=Demo Server" -config ${OPENSSL_CONF}
-    openssl x509 -provider oqsprovider -provider default -req -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365 -CAcreateserial -in "$_WD/server/csr.pem" -out "$_WD/server/cert.pem"
+    openssl req -newkey ML-DSA-65 -keyout "$_WD/server/key.pem" -out "$_WD/server/csr.pem" -nodes -subj "/CN=Demo Server"
+    openssl x509 -req -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365 -CAcreateserial -in "$_WD/server/csr.pem" -out "$_WD/server/cert.pem"
 fi
 
 echo "Update GTA personality for client in the gta-key.pem"
 echo "-----BEGIN GTA PRIVATE KEY-----" >"$_WD/client/gta-key.pem"
-# b64(pers_basic_dilithium,com.github.generic-trust-anchor-api.basic.tls)
-# or
-# b64(pers_basic_ec,com.github.generic-trust-anchor-api.basic.tls)
 echo -n "pers_basic_${PROFILE},com.github.generic-trust-anchor-api.basic.tls" | base64 >>"$_WD/client/gta-key.pem"
 echo "-----END GTA PRIVATE KEY-----" >>"$_WD/client/gta-key.pem"
 
@@ -135,20 +115,7 @@ echo "gta_identifier_assign"
 gta-cli identifier_assign --id_type=identifier1 --id_val=identifier1
 
 echo "Create GTA personality for client"
-if [[ "$PROFILE" = "ec" ]]; then
-    echo "gta_personality_create ec"
-    gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.ec
-fi
-
-if [[ "$PROFILE" = "rsa" ]]; then
-    echo "gta_personality_create rsa"
-    gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.rsa
-fi
-
-if [[ "$PROFILE" = "dilithium" ]]; then
-    echo "gta_personality_create dilitihium"
-    gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.dilithium
-fi
+gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.${PROFILE}
 
 echo "gta_personality_enroll"
 gta-cli personality_enroll --pers=pers_basic_${PROFILE} --prof=com.github.generic-trust-anchor-api.basic.enroll --ctx_attr com.github.generic-trust-anchor-api.enroll.subject_rdn="CN=Client Cert">"$_WD/client/csr.pem"
@@ -156,11 +123,6 @@ gta-cli personality_enroll --pers=pers_basic_${PROFILE} --prof=com.github.generi
 cat "$_WD/client/csr.pem"
 
 echo "Create client certificate from public key"
-
-if [[ "$PROFILE" = "dilithium" ]]; then
-    openssl x509 -provider oqsprovider -provider default -req -in "$_WD/client/csr.pem"  -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -days 365
-else
-    openssl x509 -req -in "$_WD/client/csr.pem" -out "$_WD/client/cert.pem" -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -CAcreateserial -days 365
-fi
+openssl x509 -req -in "$_WD/client/csr.pem" -out "$_WD/client/cert.pem" -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -CAcreateserial -days 365
 
 cat "$_WD/client/cert.pem"
