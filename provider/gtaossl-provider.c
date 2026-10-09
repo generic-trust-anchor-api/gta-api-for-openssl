@@ -63,15 +63,15 @@ bool register_provider(
 
 extern const OSSL_DISPATCH base_decoder_functions[];
 
-/*---------------------------Dilithium-----------------------------------*/
+/*-----------------------------ML-DSA------------------------------------*/
 
-extern const OSSL_DISPATCH dilithium_signature_functions[];
+extern const OSSL_DISPATCH mldsa_signature_functions[];
 
-extern const OSSL_DISPATCH dilithium_keymgmt_functions[];
+extern const OSSL_DISPATCH mldsa_keymgmt_functions[];
 
-extern const OSSL_DISPATCH gta_to_dilithium_decoder_functions[];
+extern const OSSL_DISPATCH gta_to_mldsa_decoder_functions[];
 
-extern const OSSL_DISPATCH dilithium_der_decoder_functions[];
+extern const OSSL_DISPATCH mldsa_der_decoder_functions[];
 
 /*---------------------------ECDSA---------------------------------------*/
 
@@ -253,7 +253,7 @@ static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
     {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
     {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta", dilithium_signature_functions},
+    {OQS_DILITHIUM_2, "provider=gta", mldsa_signature_functions},
 #endif
     {NULL, NULL, NULL}};
 
@@ -264,7 +264,7 @@ static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
     {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
     {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta", dilithium_keymgmt_functions},
+    {OQS_DILITHIUM_2, "provider=gta", mldsa_keymgmt_functions},
 #endif
     {NULL, NULL, NULL}};
 
@@ -281,8 +281,8 @@ static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
      "provider=gta,input=der,structure=PrivateKeyInfo",
      gta_to_rsa_decoder_functions},
 #ifdef ENABLE_PQC
-    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_dilithium_decoder_functions},
-    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=SubjectPublicKeyInfo", dilithium_der_decoder_functions},
+    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions},
+    {OQS_DILITHIUM_2, "provider=gta,input=der,structure=SubjectPublicKeyInfo", mldsa_der_decoder_functions},
 #endif
     {NULL, NULL, NULL}};
 

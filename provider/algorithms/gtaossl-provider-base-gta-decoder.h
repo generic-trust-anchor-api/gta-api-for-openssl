@@ -88,7 +88,7 @@ OSSL_FUNC_decoder_export_object_fn gtaossl_provider_base_gta_decoder_export_obje
  * ("com.github.generic-trust-anchor-api.keytype.openssl") from the personality.
  *
  * 4. The decoder needs to verify that the type of public key is the expected value.
- * ("EC" or "dilithium2")
+ * ("EC" or "mldsa")
  *
  * 5. Create a OSSL_PARAM parameter to describe the key type.
  *
