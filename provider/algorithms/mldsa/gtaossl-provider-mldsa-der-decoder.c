@@ -9,7 +9,7 @@
 #include "../../logger/gtaossl-provider-logger.h"
 #include "../gtaossl-provider-base-decoder.h"
 #include "../gtaossl-provider-base-gta-decoder.h"
-#include "gtaossl-provider-dilithium-types.h"
+#include "gtaossl-provider-mldsa-types.h"
 #include <openssl/core_dispatch.h>
 #include <openssl/core_names.h>
 #include <openssl/core_object.h>
@@ -19,9 +19,9 @@
 #include <string.h>
 
 /*--------------------------------DER-----------------------------------------*/
-static OSSL_FUNC_decoder_freectx_fn gtaossl_provider_dilithium_der2key_freectx;
-static OSSL_FUNC_decoder_decode_fn gtaossl_provider_dilithium_der2key_decode;
-static OSSL_FUNC_decoder_newctx_fn gtaossl_provider_dilithium_subject_pub_key_info_newctx;
+static OSSL_FUNC_decoder_freectx_fn gtaossl_provider_mldsa_der2key_freectx;
+static OSSL_FUNC_decoder_decode_fn gtaossl_provider_mldsa_der2key_decode;
+static OSSL_FUNC_decoder_newctx_fn gtaossl_provider_mldsa_subject_pub_key_info_newctx;
 
 int asn1_d2i_read_bio(BIO * in, BUF_MEM ** pb);
 
@@ -42,7 +42,7 @@ static void generate_ossl_parameters(void ** key, OSSL_PARAM * params);
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-decoder/#description
  */
-static void gtaossl_provider_dilithium_der2key_freectx(void * vctx)
+static void gtaossl_provider_mldsa_der2key_freectx(void * vctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
@@ -66,9 +66,9 @@ static void gtaossl_provider_dilithium_der2key_freectx(void * vctx)
  * - In case of PUBLIC KEY, binary key data and size paremates will be created.
  * - In case of the OSSL PARAMETERs, data type parameter will be created.
  *
- * 3. Convert and copy key data form an ASN1 Dilithium structure.
+ * 3. Convert and copy key data form an ASN1 ML-DSA structure.
  *
- * 4. The data type parameter is dilithium2.
+ * 4. The data type parameter is mldsa.
  *
  * @param[in] vctx: pointer of the DER to key decoder context
  * @param[in] cin: input BIO object
@@ -83,7 +83,7 @@ static void gtaossl_provider_dilithium_der2key_freectx(void * vctx)
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-decoder/#export-function
  */
-static int gtaossl_provider_dilithium_der2key_decode(
+static int gtaossl_provider_mldsa_der2key_decode(
     void * vctx,
     OSSL_CORE_BIO * cin,
     int selection,
@@ -100,7 +100,7 @@ static int gtaossl_provider_dilithium_der2key_decode(
     (void)pw_cb;
     (void)pw_cbarg;
 
-    LOG_INFO("Decode dilithium der object");
+    LOG_INFO("Decode mldsa der object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("%s -> input (selection = %d)", __func__, selection);
 
@@ -166,7 +166,7 @@ static int gtaossl_provider_dilithium_der2key_decode(
  * More details can be found at the following URL:
  * - https://docs.openssl.org/3.2/man7/provider-decoder/#description
  */
-static void * gtaossl_provider_dilithium_subject_pub_key_info_newctx(void * provctx)
+static void * gtaossl_provider_mldsa_subject_pub_key_info_newctx(void * provctx)
 {
 
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
@@ -420,9 +420,9 @@ err:
     return -1;
 }
 
-const OSSL_DISPATCH dilithium_der_decoder_functions[] = {
-    {OSSL_FUNC_DECODER_NEWCTX, (void (*)(void))gtaossl_provider_dilithium_subject_pub_key_info_newctx},
-    {OSSL_FUNC_DECODER_FREECTX, (void (*)(void))gtaossl_provider_dilithium_der2key_freectx},
+const OSSL_DISPATCH mldsa_der_decoder_functions[] = {
+    {OSSL_FUNC_DECODER_NEWCTX, (void (*)(void))gtaossl_provider_mldsa_subject_pub_key_info_newctx},
+    {OSSL_FUNC_DECODER_FREECTX, (void (*)(void))gtaossl_provider_mldsa_der2key_freectx},
     {OSSL_FUNC_DECODER_DOES_SELECTION, (void (*)(void))gtaossl_provider_base_gta_does_selection},
-    {OSSL_FUNC_DECODER_DECODE, (void (*)(void))gtaossl_provider_dilithium_der2key_decode},
+    {OSSL_FUNC_DECODER_DECODE, (void (*)(void))gtaossl_provider_mldsa_der2key_decode},
     {0, NULL}};

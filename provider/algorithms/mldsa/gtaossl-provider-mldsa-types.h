@@ -24,7 +24,7 @@ extern "C" {
 #include <openssl/types.h>
 
 /*
- * Example Structure for Dilithium public key:
+ * Example structure for an ML-DSA public key:
  *
  * SubjectPublicKeyInfo SEQUENCE (2 elem)Offset: 0
  *   algorithm AlgorithmIdentifier SEQUENCE (1 elem)

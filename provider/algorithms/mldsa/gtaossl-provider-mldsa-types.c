@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "gtaossl-provider-dilithium-types.h"
+#include "gtaossl-provider-mldsa-types.h"
 
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
