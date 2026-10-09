@@ -21,13 +21,11 @@ extern "C" {
 
 #define PREQS_EC "EC"
 #define PREQS_RSA "RSA"
+#define PREQS_MLDSA "ML-DSA-65"
 
 #define GTA_DATA_STRUCTURE_PARAM "GTA"
 
 #define DER_DATA_STRUCTURE_PARAM "DER"
-
-#define OQS_DILITHIUM_2 "dilithium2"
-#define OQS_DILITHIUM_2_OID "1.3.6.1.4.1.2.267.7.4.4"
 
 /**
  * Some defines which depend on the profile
