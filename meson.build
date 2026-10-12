@@ -62,18 +62,6 @@ integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integra
 # Default value of gta_state_directory 
 gta_state_directory     = get_option('gta_state_directory')  
 
-# Specify global compiler options
-add_project_arguments(
-   c_compiler.get_supported_arguments(
-        '-Wextra',
-        '-Wformat-truncation=0',
-        '-Wpedantic',
-        '-Wno-unused-function',
-        '-Wno-unused-parameter',
-   ),
-   language: 'c'
-)
-
 # Specify project compile options
 # Specify the GTA_STATE_DIRECTORY directory macro as compiler option
 GTA_STATE_DIRECTORY_c_args = [
@@ -103,26 +91,6 @@ endif
 # Enable to show state of the for cycle in the log
 if get_option('log_for_cycle_on')
    add_project_arguments('-DLOG_FOR_CYCLE_ON', language: 'c')
-endif
-
-# Select build type [release | debug]
-build_type = get_option('build_type')
-
-if build_type == 'release'
-   add_project_arguments(
-      c_compiler.get_supported_arguments(
-         '-O2',
-      ),
-      language: 'c'
-   )
-elif build_type == 'debug'
-   add_project_arguments(
-      c_compiler.get_supported_arguments(
-         '-O0',
-         '-g',
-      ),
-      language: 'c'
-   )
 endif
 
 # Dependencies

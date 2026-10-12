@@ -25,8 +25,5 @@ option('log_byte_array_on', type: 'boolean', value: false,
 option('log_for_cycle_on', type: 'boolean', value: false, 
         description: 'Enable to show state of the for cycle in the log')
 
-# Global configuration:
-option('build_type', type : 'combo', choices : ['debug', 'release' ], value : 'debug', 
-        description : 'Select build type with associated tool configuration')
 
 
