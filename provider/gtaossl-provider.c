@@ -248,40 +248,47 @@ static int gtaossl_provider_get_params(void * provctx, OSSL_PARAM params[])
  * Signature functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_signatures[] = {
-    {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions},
-    {"RSA", "provider=gta,gta.signature", rsa_signature_functions},
+    {"ECDSA", "provider=gta,gta.signature", ecdsa_signature_functions, NULL},
+    {"RSA", "provider=gta,gta.signature", rsa_signature_functions, NULL},
 #ifdef ENABLE_PQC
-    {PREQS_MLDSA, "provider=gta,gta.signature", mldsa_signature_functions},
+    {PREQS_MLDSA, "provider=gta,gta.signature", mldsa_signature_functions, NULL},
 #endif
-    {NULL, NULL, NULL}};
+    {NULL, NULL, NULL, NULL}};
 
 /**
  * Key management functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_keymgmts[] = {
-    {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions},
-    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions},
+    {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta", ecdsa_keymgmt_functions, NULL},
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta", rsa_keymgmt_functions, NULL},
 #ifdef ENABLE_PQC
-    {PREQS_MLDSA, "provider=gta", mldsa_keymgmt_functions},
+    {PREQS_MLDSA, "provider=gta", mldsa_keymgmt_functions, NULL},
 #endif
-    {NULL, NULL, NULL}};
+    {NULL, NULL, NULL, NULL}};
 
 /**
  * Key encoder/decoder functions mapping to algorithm identifiers.
  */
 static const OSSL_ALGORITHM gtaossl_provider_decoders[] = {
-    {"DER", "provider=gta,input=pem", base_decoder_functions},
-    {"EC:id-ecPublicKey:1.2.840.10045.2.1", "provider=gta,input=der,structure=GTA", gta_to_ecdsa_decoder_functions},
-    {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions},
-    {"RSA:rsaEncryption:1.2.840.113549.1.1.1", "provider=gta,input=der,structure=GTA", gta_to_rsa_decoder_functions},
+    {"DER", "provider=gta,input=pem", base_decoder_functions, NULL},
+    {"EC:id-ecPublicKey:1.2.840.10045.2.1",
+     "provider=gta,input=der,structure=GTA",
+     gta_to_ecdsa_decoder_functions,
+     NULL},
+    {"EC", "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_ecdsa_decoder_functions, NULL},
+    {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
+     "provider=gta,input=der,structure=GTA",
+     gta_to_rsa_decoder_functions,
+     NULL},
     {"RSA:rsaEncryption:1.2.840.113549.1.1.1",
      "provider=gta,input=der,structure=PrivateKeyInfo",
-     gta_to_rsa_decoder_functions},
+     gta_to_rsa_decoder_functions,
+     NULL},
 #ifdef ENABLE_PQC
-    {PREQS_MLDSA, "provider=gta,input=der,structure=GTA", gta_to_mldsa_decoder_functions},
-    {PREQS_MLDSA, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions},
+    {PREQS_MLDSA, "provider=gta,input=der,structure=GTA", gta_to_mldsa_decoder_functions, NULL},
+    {PREQS_MLDSA, "provider=gta,input=der,structure=PrivateKeyInfo", gta_to_mldsa_decoder_functions, NULL},
 #endif
-    {NULL, NULL, NULL}};
+    {NULL, NULL, NULL, NULL}};
 
 /**
  * OSSL queries the provider for supported operations with a specific operation ID.

@@ -163,7 +163,7 @@ static int gtaossl_provider_mldsa_keymgmt_export(void * keydata, int selection, 
     }
 
     size_t public_key_len = 0;
-    char * public_key = NULL;
+    unsigned char * public_key = NULL;
     OSSL_PARAM params[3] = {0};
     OSSL_PARAM * p = params;
 
