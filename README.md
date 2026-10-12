@@ -116,7 +116,6 @@ The following tools and libraries need to be installed for build and run the dem
 | log_b64_on | boolean | true | Enable showing base64 decoded data in the log |
 | log_byte_array_on | boolean | false | Enable showing byte array data in the log |
 | log_for_cycle_on | boolean | false | Enable showing state of the for cycle in the log |
-| build_type | combo | debug | Select build type with tool configuration (choices: debug, release) |
 
 ## Run TLS demo
 
