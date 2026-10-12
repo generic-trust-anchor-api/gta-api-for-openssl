@@ -184,7 +184,7 @@ static int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, 
     }
 
     size_t public_key_len = 0;
-    char * public_key = NULL;
+    unsigned char * public_key = NULL;
     size_t group_name_len = 0;
     char * group_name = NULL;
     OSSL_PARAM params[3] = {0};
