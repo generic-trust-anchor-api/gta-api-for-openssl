@@ -100,7 +100,6 @@ static int gtaossl_provider_rsa_signature_get_ctx_params(void * ctx, OSSL_PARAM 
             return NOK;
         }
         pss->saltLength = pss_salt_length;
-        EVP_MD_free(md);
 
         if (!ASN1_item_pack(pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), &parstr)) {
             LOG_ERROR("ASN1_item_pack failed");
