@@ -301,17 +301,35 @@ int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[]
 
         EVP_PKEY_CTX * ctx = EVP_PKEY_CTX_new_from_name(NULL, name, NULL);
         EVP_PKEY * key = NULL;
+        OSSL_PARAM * mutable_params = NULL;
         int len = 0;
+
+        if (NULL == ctx) {
+            LOG_ERROR("EVP_PKEY_CTX_new_from_name failed");
+            return NOK;
+        }
 
         if (EVP_PKEY_fromdata_init(ctx) <= 0) {
             LOG_ERROR("EVP_PKEY_fromdata_init failed");
+            EVP_PKEY_CTX_free(ctx);
             return NOK;
         }
 
-        if (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, params) <= 0) {
-            LOG_ERROR("EVP_PKEY_fromdata failed");
+        mutable_params = OSSL_PARAM_dup(params);
+        if (NULL == mutable_params) {
+            LOG_ERROR("OSSL_PARAM duplication failed");
+            EVP_PKEY_CTX_free(ctx);
             return NOK;
         }
+
+        if (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, mutable_params) <= 0) {
+            LOG_ERROR("EVP_PKEY_fromdata failed");
+            OSSL_PARAM_free(mutable_params);
+            EVP_PKEY_CTX_free(ctx);
+            return NOK;
+        }
+        OSSL_PARAM_free(mutable_params);
+        EVP_PKEY_CTX_free(ctx);
 
         /* Convert to SubjectPublicKeyInfo */
         len = i2d_PUBKEY(key, (unsigned char **)&pkey->pub_key);
