@@ -46,62 +46,72 @@ extern "C" {
 #define LOG__LINE(file, line, level, msg) LOG__STRUCTURED(file, line, level, msg)
 
 #define LOG__DECL_LOGLEVELF(T, fmt, ...)                                                                               \
-    {                                                                                                                  \
+    do {                                                                                                               \
         LOG__STDIO_FPRINTF(stdout, LOG__LINE(__FILE__, LOG__STR(__LINE__), #T, fmt), __VA_ARGS__);                     \
-    }
+    } while (0)
 
 #define LOG__DECL_LOGLEVELS(T, fmt)                                                                                    \
-    {                                                                                                                  \
+    do {                                                                                                               \
         LOG__STDIO_FPRINTS(stdout, LOG__LINE(__FILE__, LOG__STR(__LINE__), #T, fmt));                                  \
-    }
+    } while (0)
+
+#define LOG__NOOP()                                                                                                    \
+    do {                                                                                                               \
+    } while (0)
 
 #if LOG_LEVEL == LOG_LEVEL_TRACE
 #define LOG_TRACE_ARG(fmt, ...) LOG__DECL_LOGLEVELF("TRACE", fmt, __VA_ARGS__)
 #define LOG_TRACE(fmt) LOG__DECL_LOGLEVELS("TRACE", fmt)
 #ifdef LOG_BYTE_ARRAY_ON
-#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) printf(fmt, __VA_ARGS__)
-#define LOG_TRACE_KEY_DATA(fmt) printf(fmt)
+#define LOG_TRACE_KEY_DATA_ARG(fmt, ...)                                                                               \
+    do {                                                                                                               \
+        printf(fmt, __VA_ARGS__);                                                                                      \
+    } while (0)
+#define LOG_TRACE_KEY_DATA(fmt)                                                                                        \
+    do {                                                                                                               \
+        printf(fmt);                                                                                                   \
+    } while (0)
 #else
-#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) ((void)0)
-#define LOG_TRACE_KEY_DATA(fmt) ((void)0)
+#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) LOG__NOOP()
+#define LOG_TRACE_KEY_DATA(fmt) LOG__NOOP()
 #endif
 #else
-#define LOG_TRACE_ARG(fmt, ...) ((void)0)
-#define LOG_TRACE(fmt) ((void)0)
-#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) ((void)0)
-#define LOG_TRACE_KEY_DATA(fmt) ((void)0)
+#define LOG_TRACE_ARG(fmt, ...) LOG__NOOP()
+#define LOG_TRACE(fmt) LOG__NOOP()
+#define LOG_TRACE_KEY_DATA_ARG(fmt, ...) LOG__NOOP()
+#define LOG_TRACE_KEY_DATA(fmt) LOG__NOOP()
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_DEBUG
 #define LOG_DEBUG_ARG(fmt, ...) LOG__DECL_LOGLEVELF("DEBUG", fmt, __VA_ARGS__)
 #define LOG_DEBUG(fmt) LOG__DECL_LOGLEVELS("DEBUG", fmt)
 #else
-#define LOG_DEBUG_ARG(fmt, ...) ((void)0)
-#define LOG_DEBUG(fmt) ((void)0)
+#define LOG_DEBUG_ARG(fmt, ...) LOG__NOOP()
+#define LOG_DEBUG(fmt) LOG__NOOP()
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_INFO
 #define LOG_INFO_ARG(fmt, ...) LOG__DECL_LOGLEVELF("INFO", fmt, __VA_ARGS__)
 #define LOG_INFO(fmt) LOG__DECL_LOGLEVELS("INFO", fmt)
 #else
-#define LOG_INFO_ARG(fmt, ...) ((void)0)
-#define LOG_INFO(fmt) ((void)0)
+#define LOG_INFO_ARG(fmt, ...) LOG__NOOP()
+#define LOG_INFO(fmt) LOG__NOOP()
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_WARN
 #define LOG_WARN_ARG(fmt, ...) LOG__DECL_LOGLEVELF("WARNING", fmt, __VA_ARGS__)
 #define LOG_WARN(fmt) LOG__DECL_LOGLEVELS("WARNING", fmt)
 #else
-#define LOG_WARN_ARG(fmt, ...) ((void)0)
-#define LOG_WARN(fmt) ((void)0)
+#define LOG_WARN_ARG(fmt, ...) LOG__NOOP()
+#define LOG_WARN(fmt) LOG__NOOP()
 #endif
 
 #if LOG_LEVEL <= LOG_LEVEL_ERROR
 #define LOG_ERROR_ARG(fmt, ...) LOG__DECL_LOGLEVELF("ERROR", fmt, __VA_ARGS__)
 #define LOG_ERROR(fmt) LOG__DECL_LOGLEVELS("ERROR", fmt)
 #else
-#define LOG_ERROR_ARG(fmt, ...) ((void)0)
-#define LOG_ERROR(fmt) ((void)0)
+#define LOG_ERROR_ARG(fmt, ...) LOG__NOOP()
+#define LOG_ERROR(fmt) LOG__NOOP()
 #endif
 
 /**

@@ -607,21 +607,21 @@ int OSSL_provider_init(
     for (; in->function_id != 0; in++) {
 
 #ifdef LOG_FOR_CYCLE_ON
-        LOG_TRACE_ARG("Value: in->function_id=%d", in->function_id)
+        LOG_TRACE_ARG("Value: in->function_id=%d", in->function_id);
 #endif
 
         switch (in->function_id) {
         case OSSL_FUNC_CORE_OBJ_CREATE:
             c_obj_create = OSSL_FUNC_core_obj_create(in);
-            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_CREATE function")
+            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_CREATE function");
             break;
         case OSSL_FUNC_CORE_OBJ_ADD_SIGID:
             c_obj_add_sigid = OSSL_FUNC_core_obj_add_sigid(in);
-            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_ADD_SIGID function")
+            LOG_TRACE("Get OSSL_FUNC_CORE_OBJ_ADD_SIGID function");
             break;
         default:
 #ifdef LOG_FOR_CYCLE_ON
-            LOG_TRACE("Skip function")
+            LOG_TRACE("Skip function");
 #endif
             break;
         }
