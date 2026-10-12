@@ -92,18 +92,23 @@ The following tools and libraries need to be installed for build and run the dem
 
 * Compile and install the OpenSSL provider and helper programs:
   ```
-  $ meson setup <build_dir> -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+  $ meson setup <build_dir> -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
 
   $ ninja -C <build_dir>
 
   $ sudo ninja -C <build_dir> install
   ```
 
+  If OpenSSL is installed in a non-standard location, override the detected provider directory explicitly:
+  ```
+  $ meson setup <build_dir> -Dopenssl_modules_dir=/path/to/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+  ```
+
 ##### Available Meson options:
 
 | **Option Name** | **Type** | **Default Value** | **Description** |
 |-------------|------|----------------|-------------|
-| openssl_modules_dir | string | /lib/x86_64-linux-gnu/ossl-modules | OpenSSL provider directory |
+| openssl_modules_dir | string | empty (auto-detected) | OpenSSL provider directory override |
 | gta_state_directory | string | . | Directory to store the state of the GTA API SW provider in case the environment variable `GTA_STATE_DIRECTORY` is not present |
 | ec_on | boolean | true | Enable Elliptic Curve support |
 | dilithium_on | boolean | false | Enable Dilithium (PQC) support |
