@@ -198,7 +198,7 @@ int gtaossl_provider_base_gta_decoder_decode(
     dctx->h_ctx = gta_context_open(dctx->provider_ctx->h_inst, pkey->personality_name, pkey->profile_name, &errinfo);
 
     if (NULL == dctx->h_ctx) {
-        LOG_WARN_ARG("Skip decoder, because of the GTA context open problem: %lu", errinfo);
+        LOG_ERROR_ARG("GTA context open problem: %lu", errinfo);
         return NOK;
     } else {
 
