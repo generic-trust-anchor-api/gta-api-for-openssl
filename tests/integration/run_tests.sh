@@ -14,8 +14,20 @@ fi
 
 echo "Working directory: $_WD"
 
+if [[ -n "${BASH_TEST_TOOLS}" ]]; then
+    TEST_TOOLS_SCRIPT="${BASH_TEST_TOOLS}"
+else
+    TEST_TOOLS_SCRIPT="$DIR/../../subprojects/bash_test_tools/bash_test_tools"
+fi
+
+if [[ ! -f "${TEST_TOOLS_SCRIPT}" ]]; then
+    echo "Missing bash_test_tools helper: ${TEST_TOOLS_SCRIPT}" >&2
+    echo "Run Meson setup first or export BASH_TEST_TOOLS to the helper path." >&2
+    exit 1
+fi
+
 # shellcheck source=/dev/null
-source "$DIR/tools/bash_test_tools"
+source "$TEST_TOOLS_SCRIPT"
 
 if [[ ! -t 1 ]]; then
     function move_cursor_right

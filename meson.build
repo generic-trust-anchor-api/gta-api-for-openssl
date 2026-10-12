@@ -1,5 +1,5 @@
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -127,7 +127,13 @@ gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged
 deps += gta_sw_provider_normalized_dep
 
 # 7. Test dependency
-bash_test_tool_url = 'https://raw.githubusercontent.com/thorsteinssonh/bash_test_tools/master/bash_test_tools'
+bash_test_tools_project = subproject('bash_test_tools')
+bash_test_tools_path = join_paths(
+   meson.project_source_root(),
+   'subprojects',
+   'bash_test_tools',
+   'bash_test_tools',
+)
 
 # Define the sources
 py = find_program('python3')
@@ -158,31 +164,14 @@ openssl_provider_with_gta = shared_module(
    install_dir: openssl_modules_dir,
 )
 
-# Custom meson targets
-# Prepare test tools
-fetch_test_tools = custom_target(
-   'fetch_test_tools',
-   output: 'bash_test_tools',
-   command: [
-   'sh', '-c',
-   (
-      'mkdir -p "@0@/tools" && ' +
-      'wget -q -O "@0@/tools/bash_test_tools" "@1@" && ' +
-      'chmod +x "@0@/tools/bash_test_tools"'
-   )
-      .format(integration_test_dir, 
-              bash_test_tool_url)
-  ]
-)
-
 # Run test
 run_test_suit = find_program(meson.project_source_root() + '/tests/integration/run_tests.sh')
 test(
    'run_test_suit',
    run_test_suit,
    workdir : integration_test_dir,
-   depends: [fetch_test_tools],
    env: {
+      'BASH_TEST_TOOLS' : bash_test_tools_path,
       'WORK_DIR' : meson.project_build_root(),
    },
    is_parallel : false,

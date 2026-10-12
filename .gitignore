@@ -10,6 +10,8 @@ build
 demo/cmp/tmp
 !demo/cmp/cloud-pki/cmp_client_cert.pem
 demo/tls/client/gta_api_state
-tests/integration/tools/bash_test_tools
 deps/gta_api/lib_latest/*.a
 /nbproject
+subprojects/bash_test_tools/
+subprojects/packagecache/
+subprojects/.wraplock
