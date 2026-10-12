@@ -438,3 +438,50 @@ error:
     OPENSSL_free(group_name);
     return NOK;
 }
+
+int gtaossl_provider_base_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    LOG_TRACE_ARG("Selection = %d", selection);
+
+    int result = NOK;
+    const GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+    OSSL_PARAM * params = NULL;
+    int export_selection = selection & ~OSSL_KEYMGMT_SELECT_PRIVATE_KEY;
+
+#if LOG_LEVEL == LOG_LEVEL_TRACE
+    LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->profile_name = %s", __func__, pkey->profile_name);
+
+    LOG_TRACE_ARG("Function(%s) GTA pkey->pub_key = %s", __func__, pkey->pub_key);
+    LOG_TRACE_ARG("Function(%s)  GTA pkey->pub_key_size = %zu", __func__, pkey->pub_key_size);
+#endif
+
+    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
+        LOG_TRACE("OSSL_KEYMGMT_SELECT_PRIVATE_KEY");
+        return NOK;
+    }
+
+    if (0 == export_selection) {
+        LOG_ERROR("No exportable public selection requested");
+        return NOK;
+    }
+
+    EVP_PKEY * key = NULL;
+    if (!base_get_public_key(pkey, &key)) {
+        return NOK;
+    }
+
+    if (0 >= EVP_PKEY_todata(key, export_selection, &params) || (NULL == params)) {
+        LOG_ERROR("EVP_PKEY_todata failed");
+        EVP_PKEY_free(key);
+        return NOK;
+    }
+
+    LOG_TRACE("Call param_cb");
+    result = param_cb(params, cbarg);
+    OSSL_PARAM_free(params);
+    EVP_PKEY_free(key);
+    return result;
+}

@@ -26,7 +26,6 @@
 
 static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_ecdsa_keymgmt_gettable_params;
 static OSSL_FUNC_keymgmt_import_fn gtaossl_provider_ecdsa_keymgmt_import;
-static OSSL_FUNC_keymgmt_export_fn gtaossl_provider_ecdsa_keymgmt_export;
 static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_ecdsa_keymgmt_eximport_types;
 static OSSL_FUNC_keymgmt_query_operation_name_fn gtaossl_provider_ecdsa_keymgmt_query_operation_name;
 
@@ -145,104 +144,6 @@ static const OSSL_PARAM * gtaossl_provider_ecdsa_keymgmt_eximport_types(int sele
     }
 }
 
-/**
- * Export key in case EC
- *
- * @param[in] keydata: pointer to a key structure
- * @param[in] selection: type of the selection
- * @param[in] param_cb: parameters of callback function
- * @param[in] cbarg: callback function
- *
- * @return OK = 1
- * @return NOK = 0
- */
-static int gtaossl_provider_ecdsa_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg)
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Selection = %d", selection);
-
-    int result = NOK;
-    GTA_PKEY * pkey = (GTA_PKEY *)keydata;
-
-#if LOG_LEVEL == LOG_LEVEL_TRACE
-    LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
-    LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
-    LOG_TRACE_ARG("Function(%s) GTA pkey->profile_name = %s", __func__, pkey->profile_name);
-
-    LOG_TRACE_ARG("Function(%s) GTA pkey->pub_key = %s", __func__, pkey->pub_key);
-    LOG_TRACE_ARG("Function(%s)  GTA pkey->pub_key_size = %zu", __func__, pkey->pub_key_size);
-#endif
-
-    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
-        LOG_TRACE("OSSL_KEYMGMT_SELECT_PRIVATE_KEY");
-        return NOK;
-    }
-
-    EVP_PKEY * key = NULL;
-    if (!base_get_public_key(pkey, &key)) {
-        return NOK;
-    }
-
-    size_t public_key_len = 0;
-    unsigned char * public_key = NULL;
-    size_t group_name_len = 0;
-    char * group_name = NULL;
-    OSSL_PARAM params[3] = {0};
-    OSSL_PARAM * p = params;
-    if ((selection & OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) != 0) {
-        LOG_TRACE("OSSL_KEYMGMT_SELECT_ALL_PARAMETERS");
-        /* Get group name */
-        if (!EVP_PKEY_get_group_name(key, NULL, 0, &group_name_len)) {
-            LOG_ERROR("EVP_PKEY_get_group_name failed");
-            return NOK;
-        }
-        LOG_TRACE_ARG("group_name_len: %zu", group_name_len);
-
-        group_name = OPENSSL_zalloc(group_name_len + 1);
-        if (NULL == group_name) {
-            LOG_ERROR("mamory allocation failed");
-            return NOK;
-        }
-
-        if (!EVP_PKEY_get_group_name(key, group_name, group_name_len + 1, NULL)) {
-            LOG_ERROR("EVP_PKEY_get_group_name failed");
-            return NOK;
-        }
-        LOG_TRACE_ARG("group_name: %s", group_name);
-        /* Return the group name */
-        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, group_name, 0);
-    }
-    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
-        LOG_TRACE("OSSL_KEYMGMT_SELECT_PUBLIC_KEY");
-        /* Get raw public key */
-        if (!EVP_PKEY_get_octet_string_param(key, OSSL_PKEY_PARAM_PUB_KEY, NULL, 0, &public_key_len)) {
-            LOG_ERROR("EVP_PKEY_get_octet_string_param failed");
-            return NOK;
-        }
-        LOG_TRACE_ARG("public_key_len: %zu", public_key_len);
-
-        public_key = OPENSSL_zalloc(public_key_len);
-        if (NULL == public_key) {
-            LOG_ERROR("mamory allocation failed");
-            return NOK;
-        }
-
-        if (!EVP_PKEY_get_octet_string_param(key, OSSL_PKEY_PARAM_PUB_KEY, public_key, public_key_len, NULL)) {
-            LOG_ERROR("EVP_PKEY_get_group_name failed");
-            return NOK;
-        }
-        /* Return the raw public key */
-        *p++ = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_PUB_KEY, public_key, public_key_len);
-    }
-    *p = OSSL_PARAM_construct_end();
-
-    LOG_TRACE("Call param_cb");
-    result = param_cb(params, cbarg);
-    OPENSSL_free(group_name);
-    OPENSSL_free(public_key);
-    return result;
-}
-
 const OSSL_DISPATCH ecdsa_keymgmt_functions[] = {
 
     {OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))gtaossl_provider_base_keymgmt_new},
@@ -257,6 +158,6 @@ const OSSL_DISPATCH ecdsa_keymgmt_functions[] = {
     {OSSL_FUNC_KEYMGMT_MATCH, (void (*)(void))gtaossl_provider_base_keymgmt_match},
     {OSSL_FUNC_KEYMGMT_IMPORT, (void (*)(void))gtaossl_provider_ecdsa_keymgmt_import},
     {OSSL_FUNC_KEYMGMT_IMPORT_TYPES, (void (*)(void))gtaossl_provider_ecdsa_keymgmt_eximport_types},
-    {OSSL_FUNC_KEYMGMT_EXPORT, (void (*)(void))gtaossl_provider_ecdsa_keymgmt_export},
+    {OSSL_FUNC_KEYMGMT_EXPORT, (void (*)(void))gtaossl_provider_base_keymgmt_export},
     {OSSL_FUNC_KEYMGMT_EXPORT_TYPES, (void (*)(void))gtaossl_provider_ecdsa_keymgmt_eximport_types},
     {0, NULL}};
