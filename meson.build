@@ -18,10 +18,45 @@ project('GTA API for OpenSSL',
 
 # Import helper functionalities
 c_compiler = meson.get_compiler('c')
+py = find_program('python3')
+openssl_cli = find_program('openssl', required: true)
 
 # Define project path options from the configuration file (meson_options.txt)
-# Expected value of openssl_modules_dir is an absolute path. 
-openssl_modules_dir     = get_option('openssl_modules_dir')
+# Expected value of openssl_modules_dir is an absolute path when used as override.
+openssl_modules_dir_override = get_option('openssl_modules_dir').strip()
+if openssl_modules_dir_override != ''
+   openssl_modules_dir = openssl_modules_dir_override
+else
+   openssl_modules_dir_result = run_command(openssl_cli, 'version', '-m', check: false)
+   if openssl_modules_dir_result.returncode() != 0
+      error('Failed to detect the OpenSSL provider directory. Set -Dopenssl_modules_dir=/path/to/ossl-modules to override.')
+   endif
+
+   parse_modules_dir = '''import sys
+line = sys.argv[1].strip()
+prefix = 'MODULESDIR:'
+if not line.startswith(prefix):
+    raise SystemExit(1)
+modules_dir = line[len(prefix):].strip().strip('"')
+if not modules_dir.startswith('/'):
+    raise SystemExit(1)
+print(modules_dir)
+'''
+   parsed_modules_dir_result = run_command(
+      py,
+      '-c',
+      parse_modules_dir,
+      openssl_modules_dir_result.stdout(),
+      check: false,
+   )
+   if parsed_modules_dir_result.returncode() != 0
+      error('Unable to parse the OpenSSL provider directory from `openssl version -m`. Set -Dopenssl_modules_dir=/path/to/ossl-modules to override.')
+   endif
+
+   openssl_modules_dir = parsed_modules_dir_result.stdout().strip()
+endif
+message('OpenSSL provider install dir: ' + openssl_modules_dir)
+
 integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integration')
 
 # Default value of gta_state_directory 
@@ -136,8 +171,6 @@ bash_test_tools_path = join_paths(
 )
 
 # Define the sources
-py = find_program('python3')
-
 code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
 res = run_command(py, '-c', code, check: true)
 
@@ -180,7 +213,8 @@ test(
 
 # Meson popular commands:
 # 1) Create build folder and setup project (<build_dir> needs to replaced with a custom value):
-# meson setup <build_dir> -Dopenssl_modules_dir=/lib/x86_64-linux-gnu/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+# meson setup <build_dir> -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+# Add -Dopenssl_modules_dir=/path/to/ossl-modules only to override auto-detection.
 
 # 2) Build project:
 # meson compile -C <build_dir>

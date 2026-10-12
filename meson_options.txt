@@ -4,8 +4,8 @@
 
 # Install target configuration:
 option('openssl_modules_dir', type: 'string',
-       value: '/lib/x86_64-linux-gnu/ossl-modules',
-       description: 'OpenSSL provider directory')
+        value: '',
+        description: 'OpenSSL provider directory override (auto-detected when empty)')
 
 # Default configuration:
 option('gta_state_directory', type: 'string', value: '.',
