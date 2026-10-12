@@ -184,6 +184,32 @@ int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key);
  */
 int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[], const char * name);
 
+/**
+ * The OSSL_FUNC_keymgmt_has() function checks whether the given keydata
+ * contains the subsets of data indicated by the selector.
+ * The current solution does not contain any implementation in the demo application,
+ * but this function needs to defined to avoid the following error:
+ * server: -
+ * client: Could not find client certificate private key from gta-key.pem
+ *         80FB619B377F0000:error:1608010C:STORE routines:ossl_store_handle_load_result:
+ *         unsupported:crypto/store/store_result.c:151:
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ *
+ * @param[in] keydata: pointer of a key structure
+ * @param[in] selection: type of the selection
+ * @param[in] param_cb: callback function
+ * @param[in] cbarg: parameters of the callback function
+ * @return OK = 1
+ * @return NOK = 0
+ *
+ * The preprocessor-generated function signature:
+ *
+ * int gtaossl_provider_base_keymgmt_export(void *keydata, int selection, OSSL_CALLBACK *param_cb, void *cbarg)
+ */
+OSSL_FUNC_keymgmt_export_fn gtaossl_provider_base_keymgmt_export;
+
 #ifdef __cplusplus
 }
 #endif
