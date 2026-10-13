@@ -69,12 +69,9 @@ static const OSSL_PARAM * gtaossl_provider_rsa_keymgmt_gettable_params(void * pr
 static const char * gtaossl_provider_rsa_keymgmt_query_operation_name(int operation_id)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    switch (operation_id) {
-    case OSSL_OP_SIGNATURE:
+    if (OSSL_OP_SIGNATURE == operation_id) {
         LOG_INFO("Signature");
         return "RSA";
-    default:
-        break;
     }
     return NULL;
 }
