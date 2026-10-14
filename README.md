@@ -112,7 +112,7 @@ The following tools and libraries need to be installed for build and run the dem
 | openssl_modules_dir | string | empty (auto-detected) | OpenSSL provider directory override |
 | gta_state_directory | string | . | Directory to store the state of the GTA API SW provider in case the environment variable `GTA_STATE_DIRECTORY` is not present |
 | enable-post-quantum-crypto | boolean | false | Enable PQC |
-| log_level | integer | 0 | Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4) |
+| log_level | integer | 4 | Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4) |
 | log_b64_on | boolean | true | Enable showing base64 decoded data in the log |
 | log_byte_array_on | boolean | false | Enable showing byte array data in the log |
 | log_for_cycle_on | boolean | false | Enable showing state of the for cycle in the log |
