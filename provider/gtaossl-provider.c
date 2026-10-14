@@ -354,6 +354,7 @@ static void gtaossl_provider_unquery_operation(void * provctx, int id, const OSS
 
     /* Currently unused */
     (void)provctx;
+    (void)id;
 
     if (alg != NULL) {
         for (int i = 0; alg[i].algorithm_names != NULL; i++) {
@@ -366,6 +367,8 @@ static void gtaossl_provider_unquery_operation(void * provctx, int id, const OSS
 
     LOG_TRACE_ARG("%s - operation id = %d", __func__, id);
 
+/* Only needed for TRACE and DEBUG */
+#if LOG_LEVEL <= 1
     switch (id) {
     case OSSL_OP_KEYMGMT:
         LOG_DEBUG("Key management of an algorithm");
@@ -382,6 +385,7 @@ static void gtaossl_provider_unquery_operation(void * provctx, int id, const OSS
     default:
         break;
     }
+#endif
 
     LOG_TRACE("Nothing to do here");
     return;
@@ -413,7 +417,7 @@ int gtaossl_provider_get_capabilities(void * provctx, const char * capability, O
         return OK;
     }
 
-    LOG_ERROR_ARG("We don't support this capability [%s]", capability);
+    LOG_WARN_ARG("We don't support this capability [%s]", capability);
     return NOK;
 }
 
