@@ -1,26 +1,26 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
-function test_ec_parameter_during_the_init
+function test_tls_rsa
 {
-    echo "Test the ec value"
+    echo "Test TLS with RSA"
     echo "Prepare test"
-    (cd demo && ./prepare_demo.sh ec &>/dev/null)
+    (cd demo/tls && ./prepare_tls_demo.sh rsa &>/dev/null)
     echo "Start server"
-    (cd demo/server && timeout 10s ./start_server.sh &>/dev/null)&
+    (cd demo/tls && timeout 10s ./start_server.sh &>/dev/null)&
     sleep 2
     
-    cd demo/client || exit 
+    cd demo/tls || exit 
     echo "Start client"
     run ./start_client.sh
     sleep 1
     
     assert_output_contains "Verification: OK"
     assert_output_contains "CONNECTED(00000003)"
-    assert_output_contains "sigalg: ecdsa-with-SHA256"
+    assert_output_contains "sigalg: sha256WithRSAEncryption"
     assert_output_contains "Tear down provider instance"
     assert_output_contains "Verify return code: 0 (ok)"
     # assert_output_contains "read R BLOCK"
