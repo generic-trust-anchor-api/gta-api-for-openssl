@@ -9,6 +9,15 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: pq-off
+            meson_args: ''
+          - name: pq-on
+            meson_args: '-Denable-post-quantum-crypto=true'
+    name: build-test (${{ matrix.name }})
     steps:
       - name: Install dependencies
         run: |
@@ -29,7 +38,7 @@ jobs:
           ref: 'main'
       - name: Build and install gta-api-sw-provider
         run: |
-          meson setup build
+          meson setup build ${{ matrix.meson_args }}
           sudo ninja -C build install
       - name: Checkout gta-cli
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -38,7 +47,7 @@ jobs:
           ref: 'main'
       - name: Build and install gta-cli
         run: |
-          meson setup build
+          meson setup build ${{ matrix.meson_args }}
           sudo ninja -C build install
       - name: Checkout gta-api-for-openssl
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -55,7 +64,7 @@ jobs:
           unzip deps/gta_api/lib_latest/libgta_sw_provider_merged.zip -d deps/gta_api/lib_latest
       - name: Build and install gta-api-for-openssl
         run: |
-          meson setup build
+          meson setup build --werror ${{ matrix.meson_args }}
           ninja -C build
           sudo ninja -C build install
           sudo ldconfig
