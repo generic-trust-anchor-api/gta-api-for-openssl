@@ -157,8 +157,7 @@ int gtaossl_provider_base_gta_decoder_decode(
     /* Currently unused */
     (void)pw_cb;
     (void)pw_cbarg;
-
-    LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
+    (void)selection;
 
     OSSL_PARAM params[4] = {0};
     int object_type = 0;

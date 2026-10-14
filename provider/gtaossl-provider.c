@@ -413,7 +413,7 @@ int gtaossl_provider_get_capabilities(void * provctx, const char * capability, O
         return OK;
     }
 
-    LOG_ERROR_ARG("We don't support this capability [%s]", capability);
+    LOG_WARN_ARG("We don't support this capability [%s]", capability);
     return NOK;
 }
 

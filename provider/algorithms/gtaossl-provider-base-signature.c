@@ -28,7 +28,9 @@
 void * gtaossl_provider_base_signature_newctx(void * provctx, const char * propq)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Input of %s : %s", __func__, propq);
+
+    /* Currently unused */
+    (void)propq;
 
     GTA_PROVIDER_CTX * cprov = provctx;
     GTA_SIGNATURE_CTX * sctx = OPENSSL_zalloc(sizeof(GTA_SIGNATURE_CTX));
@@ -75,7 +77,7 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
     }
 
     if (NULL == params) {
-        LOG_ERROR("params is NULL -> nothing more to check");
+        LOG_TRACE("params is NULL -> nothing more to check");
         return OK;
     }
 
