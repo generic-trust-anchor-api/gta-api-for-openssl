@@ -4,7 +4,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+readonly EXIT_SUCCESS=0
+readonly EXIT_FAILURE=1
+
 set -euo pipefail
+
+gta_cli_fail() {
+    echo "gta-cli failed" >&2
+    exit "$EXIT_FAILURE"
+}
 
 export _WD="${WORK_DIR:-.}"
 echo "Working directory: $_WD"
@@ -50,19 +58,18 @@ fi
 rm -f "$GTA_STATE_DIRECTORY/"*
 rm -f "$DEMO_CREDENTIAL_DIR/"*
 
-openssl list -providers
 if openssl list -provider gta -providers; then
     echo "The gta provider installed... OK"
 else
     echo "Missing gta provider"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
     echo "The gta-cli installed... OK"
 else
     echo "Missing gta-cli"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 echo "Create reference to GTA API private key for OpenSSL provider (personality_name,profile_name)"
@@ -80,22 +87,24 @@ cat "$DEMO_CREDENTIAL_DIR/gta-trusted-cert.pem"
 echo ""
 
 echo "Create identifier"
-gta-cli identifier_assign --id_type=ch.iec.30168.identifier.mac_addr --id_val=DE-AD-BE-EF-FE-ED
+gta-cli identifier_assign --id_type=ch.iec.30168.identifier.mac_addr --id_val=DE-AD-BE-EF-FE-ED || gta_cli_fail
 
 if [[ "$PROFILE" = "ec" ]]; then
     echo "Create EC GTA API personality for CMP"
-    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.ec
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.ec || gta_cli_fail
 fi
 
 if [[ "$PROFILE" = "rsa" ]]; then
     echo "Create RSA GTA API personality for CMP"
-    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.rsa
+    gta-cli personality_create --id_val=DE-AD-BE-EF-FE-ED --pers=CMP --app_name=cmp --prof=com.github.generic-trust-anchor-api.basic.rsa || gta_cli_fail
 fi
 
 # Note that the certs need to be DER encoded
 echo "Add trusted certificates to personality"
-gta-cli personality_add_trusted_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.trusted.x509v3 --attr_name="Root CA" --attr_val="${CLOUD_PKI_CREDENTIAL_DIR}/cmp_root_ca.crt"
-gta-cli personality_add_trusted_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.trusted.x509v3 --attr_name="ECC Root CA" --attr_val="${CLOUD_PKI_CREDENTIAL_DIR}/cmp_ecc_root_ca.crt"
+gta-cli personality_add_trusted_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.trusted.x509v3 --attr_name="Root CA" --attr_val="${CLOUD_PKI_CREDENTIAL_DIR}/cmp_root_ca.crt" || gta_cli_fail
+gta-cli personality_add_trusted_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.trusted.x509v3 --attr_name="ECC Root CA" --attr_val="${CLOUD_PKI_CREDENTIAL_DIR}/cmp_ecc_root_ca.crt" || gta_cli_fail
 
 echo "List the stored attributes of the personality"
-gta-cli personality_attributes_enumerate --pers=CMP
+gta-cli personality_attributes_enumerate --pers=CMP || gta_cli_fail
+
+exit "$EXIT_SUCCESS"

@@ -4,7 +4,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+readonly EXIT_SUCCESS=0
+readonly EXIT_FAILURE=1
+
 set -euo pipefail
+
+gta_cli_fail() {
+    echo "gta-cli failed" >&2
+    exit "$EXIT_FAILURE"
+}
 
 export _WD="${WORK_DIR:-.}"
 echo "Working directory: $_WD"
@@ -24,23 +32,18 @@ if [[ -z "${CMP_CLIENT_KEY:-}" ]]; then
     exit 1
 fi
 
-echo "Provider config..."
-cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'
-
-echo "Show all active provider..."
-openssl list -providers
 if openssl list -provider gta -providers; then
     echo "The gta provider installed... OK"
 else
     echo "Missing gta provider"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
     echo "The gta-cli installed... OK"
 else
     echo "Missing gta-cli"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 echo "Send CMP kur"
@@ -50,16 +53,18 @@ openssl cmp -cmd kur -server https://broker.sdo.siemens.cloud:443 -path "/.well-
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "List the stored attributes (before remove)"
-gta-cli personality_attributes_enumerate --pers=CMP
+gta-cli personality_attributes_enumerate --pers=CMP || gta_cli_fail
 
 echo "Remove old certificate"
-gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Test Cert"
+gta-cli personality_remove_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_name="Test Cert" || gta_cli_fail
 
 echo "List the stored attributes (after remove)"
-gta-cli personality_attributes_enumerate --pers=CMP
+gta-cli personality_attributes_enumerate --pers=CMP || gta_cli_fail
 
 echo "Add new certificate to personality"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$DEMO_CREDENTIAL_DIR/test.cert.pem"
+gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$DEMO_CREDENTIAL_DIR/test.cert.pem" || gta_cli_fail
 
 echo "List the stored attributes (new)"
-gta-cli personality_attributes_enumerate --pers=CMP
+gta-cli personality_attributes_enumerate --pers=CMP || gta_cli_fail
+
+exit "$EXIT_SUCCESS"
