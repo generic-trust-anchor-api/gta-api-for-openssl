@@ -4,11 +4,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-if [[ "${WORK_DIR}" == "" ]]; then
-    export _WD="."
-else
-    export _WD="${WORK_DIR}"
-fi
+readonly EXIT_SUCCESS=0
+readonly EXIT_FAILURE=1
+
+set -euo pipefail
+
+gta_cli_fail() {
+    echo "gta-cli failed" >&2
+    exit "$EXIT_FAILURE"
+}
+
+export _WD="${WORK_DIR:-.}"
 
 echo "Working directory: $_WD"
 
@@ -34,13 +40,13 @@ else
     mkdir -p "$_WD/client"
 fi
 
-if [[ "$1" = "ec" ]]; then
+if [[ "${1:-}" = "ec" ]]; then
   echo "Generate EC key materials..."
   PROFILE="ec"
-elif [[ "$1" = "rsa" ]]; then
+elif [[ "${1:-}" = "rsa" ]]; then
   echo "Generate RSA key materials..."
   PROFILE="rsa"
-elif [[ "$1" = "mldsa" ]]; then
+elif [[ "${1:-}" = "mldsa" ]]; then
   echo "Generate PQ key materials..."
   PROFILE="ml-dsa"
 else
@@ -57,19 +63,18 @@ else
     mkdir -p "$GTA_STATE_DIRECTORY"
 fi
 
-openssl list -providers
 if openssl list -provider gta -providers; then
     echo "The gta provider installed... OK"
 else
     echo "Missing gta provider"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
     echo "The gta-cli installed... OK"
 else
     echo "Missing gta-cli"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 rm -rf "$_WD/CA"
@@ -112,13 +117,13 @@ echo -n "pers_basic_${PROFILE},com.github.generic-trust-anchor-api.basic.tls" | 
 echo "-----END GTA PRIVATE KEY-----" >>"$_WD/client/gta-key.pem"
 
 echo "gta_identifier_assign"
-gta-cli identifier_assign --id_type=identifier1 --id_val=identifier1
+gta-cli identifier_assign --id_type=identifier1 --id_val=identifier1 || gta_cli_fail
 
 echo "Create GTA personality for client"
-gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.${PROFILE}
+gta-cli personality_create --id_val=identifier1 --pers=pers_basic_${PROFILE} --app_name=Application --prof=com.github.generic-trust-anchor-api.basic.${PROFILE} || gta_cli_fail
 
 echo "gta_personality_enroll"
-gta-cli personality_enroll --pers=pers_basic_${PROFILE} --prof=com.github.generic-trust-anchor-api.basic.enroll --ctx_attr com.github.generic-trust-anchor-api.enroll.subject_rdn="CN=Client Cert">"$_WD/client/csr.pem"
+gta-cli personality_enroll --pers=pers_basic_${PROFILE} --prof=com.github.generic-trust-anchor-api.basic.enroll --ctx_attr com.github.generic-trust-anchor-api.enroll.subject_rdn="CN=Client Cert">"$_WD/client/csr.pem" || gta_cli_fail
 
 cat "$_WD/client/csr.pem"
 
@@ -126,3 +131,5 @@ echo "Create client certificate from public key"
 openssl x509 -req -in "$_WD/client/csr.pem" -out "$_WD/client/cert.pem" -CAkey "$_WD/CA/CAkey.pem" -CA "$_WD/CA/CAcert.pem" -CAcreateserial -days 365
 
 cat "$_WD/client/cert.pem"
+
+exit "$EXIT_SUCCESS"

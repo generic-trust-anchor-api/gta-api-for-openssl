@@ -4,7 +4,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+readonly EXIT_SUCCESS=0
+readonly EXIT_FAILURE=1
+
 set -euo pipefail
+
+gta_cli_fail() {
+    echo "gta-cli failed" >&2
+    exit "$EXIT_FAILURE"
+}
 
 export _WD="${WORK_DIR:-.}"
 echo "Working directory: $_WD"
@@ -24,23 +32,18 @@ if [[ -z "${CMP_CLIENT_KEY:-}" ]]; then
     exit 1
 fi
 
-echo "Provider config..."
-cat $OPENSSL_CONF | head -79 | tail -30 | grep -v '#'
-
-echo "Show all active provider..."
-openssl list -providers
 if openssl list -provider gta -providers; then
     echo "The gta provider installed... OK"
 else
     echo "Missing gta provider"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 if gta-cli personality_attributes_enumerate --pers=test >/dev/null; then
     echo "The gta-cli installed... OK"
 else
     echo "Missing gta-cli"
-    exit 1
+    exit "$EXIT_FAILURE"
 fi
 
 echo "Send CMP cr"
@@ -50,7 +53,9 @@ openssl cmp -cmd cr -server https://broker.sdo.siemens.cloud:443 -path "/.well-k
 export OPENSSL_CONF=../openssl_config/openssl.cnf
 
 echo "Store issued cert"
-gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$DEMO_CREDENTIAL_DIR/test.cert.pem"
+gta-cli personality_add_attribute --pers=CMP --prof=com.github.generic-trust-anchor-api.basic.signature --attr_type=ch.iec.30168.trustlist.certificate.self.x509 --attr_name="Test Cert" --attr_val="$DEMO_CREDENTIAL_DIR/test.cert.pem" || gta_cli_fail
 
 echo "List the stored attributes"
-gta-cli personality_attributes_enumerate --pers=CMP
+gta-cli personality_attributes_enumerate --pers=CMP || gta_cli_fail
+
+exit "$EXIT_SUCCESS"
