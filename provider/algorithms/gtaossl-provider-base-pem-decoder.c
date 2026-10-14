@@ -155,12 +155,12 @@ static int gtaossl_provider_base_pem_decoder_decode(
 
     LOG_INFO("Decode pem object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("%s -> input (selection = %d)", __func__, selection);
     GTA_DER_DECODER_CTX * dctx = ctx;
 
     /* Currently unused */
     (void)pw_cb;
     (void)pw_cbarg;
+    (void)selection;
 
     BIO * bin = NULL;
     char * pem_name = NULL;

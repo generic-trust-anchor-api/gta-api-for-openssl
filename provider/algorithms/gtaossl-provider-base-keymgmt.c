@@ -62,7 +62,9 @@ void * gtaossl_provider_base_keymgmt_new(void * provctx)
 void * gtaossl_provider_base_keymgmt_load(const void * reference, size_t reference_sz)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("reference_sz: %zu", reference_sz);
+
+    /* Currently unused */
+    (void)reference_sz;
 
     GTA_PKEY * pkey = *(GTA_PKEY **)reference;
 
@@ -230,7 +232,9 @@ int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key)
 int gtaossl_provider_base_keymgmt_match(const void * keydata1, const void * keydata2, int selection)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Selection = %d", selection);
+
+    /* Currently unused */
+    (void)selection;
 
     if ((NULL == keydata1) || (NULL == keydata2)) {
         LOG_ERROR("keydata1 and/or keydata2 is null");
