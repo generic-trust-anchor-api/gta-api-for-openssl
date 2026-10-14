@@ -204,6 +204,7 @@ test(
    env: {
       'BASH_TEST_TOOLS' : bash_test_tools_path,
       'WORK_DIR' : meson.project_build_root(),
+      'ENABLE_PQC' : get_option('enable-post-quantum-crypto').to_string(),
    },
    is_parallel : false,
    timeout : 0
