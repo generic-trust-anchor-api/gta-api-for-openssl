@@ -8,20 +8,28 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-26.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: pq-off
+          - name: pq-off-openssl-3.0
+            runner: ubuntu-24.04
             meson_args: ''
-          - name: pq-on
+          - name: pq-off-openssl-3.5+
+            runner: ubuntu-26.04
+            meson_args: ''
+          - name: pq-on-openssl-3.5+
+            runner: ubuntu-26.04
             meson_args: '-Denable-post-quantum-crypto=true'
     name: build-test (${{ matrix.name }})
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git strace curl unzip openssl ca-certificates libjitterentropy3-dev
+          sudo apt-get update && sudo apt-get install -y libcmocka-dev meson ninja-build build-essential cmake pkg-config git strace curl unzip openssl ca-certificates
+          if [[ "${{ matrix.runner }}" == "ubuntu-26.04" ]]; then
+            sudo apt-get install -y libjitterentropy3-dev
+          fi
       - name: Checkout gta-api-core
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
         with:
