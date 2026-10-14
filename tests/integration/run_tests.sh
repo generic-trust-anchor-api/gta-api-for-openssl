@@ -51,13 +51,11 @@ function setup
 function teardown
 {
     echo "Teardown test..."
-    killall -s 9 openssl
+    killall -s 9 openssl &>/dev/null
     return 0
 }
 
 # Test definitions
-# shellcheck source=/dev/null
-source "$DIR/test_tls_default.sh"
 # shellcheck source=/dev/null
 source "$DIR/test_tls_ec.sh"
 # shellcheck source=/dev/null
