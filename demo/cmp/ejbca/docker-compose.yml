@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: Copyright 2026 Siemens
+#
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: ejbcadb
+    restart: on-failure
+    environment:
+      - MYSQL_DATABASE=ejbcadb
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_USER=ejbca
+      - MYSQL_PASSWORD=ejbca
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./ejbcadb.sql:/docker-entrypoint-initdb.d/01-ejbcadb.sql:ro
+    networks:
+      - ejbca_net
+
+  ejbca:
+    image: keyfactor/ejbca-ce:latest
+    container_name: ejbca-ce
+    depends_on:
+      - db
+    links:
+      - db
+    restart: on-failure
+    environment:
+      - DATABASE_JDBC_URL=jdbc:mysql://ejbcadb:3306/ejbcadb?characterEncoding=UTF-8
+      - DATABASE_USER=ejbca
+      - DATABASE_PASSWORD=ejbca
+    ports:
+      - 6080:8080
+      - 6443:8443
+    networks:
+      - ejbca_net
+
+networks:
+  ejbca_net:
+
+volumes:
+  db_data:
+
+
