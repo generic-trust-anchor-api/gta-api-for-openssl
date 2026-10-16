@@ -68,6 +68,12 @@ fi
 
 # shellcheck source=/dev/null
 source "$DIR/test_cmp_ec.sh"
+# shellcheck source=/dev/null
+source "$DIR/test_cmp_rsa.sh"
+if [[ "${ENABLE_PQC:-false}" == "true" ]]; then
+    # shellcheck source=/dev/null
+    source "$DIR/test_cmp_mldsa.sh"
+fi
 
 # Run all test functions
 testrunner

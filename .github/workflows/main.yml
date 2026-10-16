@@ -79,7 +79,6 @@ jobs:
       - name: Test gta-api-for-openssl
         env:
           TERM: xterm
-          CMP_CLIENT_KEY: ${{ secrets.CMP_CLIENT_KEY }}
         run: |
           ninja -C build test
       - name: Upload test logs as artifact

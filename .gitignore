@@ -8,7 +8,6 @@ build
 *.pem
 *.srl
 demo/cmp/tmp
-!demo/cmp/cloud-pki/cmp_client_cert.pem
 demo/tls/client/gta_api_state
 deps/gta_api/lib_latest/*.a
 /nbproject
