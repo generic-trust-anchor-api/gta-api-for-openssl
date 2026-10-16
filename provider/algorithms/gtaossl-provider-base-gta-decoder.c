@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,6 +19,31 @@
 #include <string.h>
 
 extern int gtaossl_provider_base_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg);
+
+static int looks_like_gta_reference(const char * buf, size_t len)
+{
+    if ((NULL == buf) || (0 == len)) {
+        return NOK;
+    }
+
+    if (NULL == memchr(buf, ',', len)) {
+        return NOK;
+    }
+
+    for (size_t i = 0; i < len; ++i) {
+        unsigned char ch = (unsigned char)buf[i];
+
+        if ('\0' == ch) {
+            return OK;
+        }
+
+        if (!isprint(ch) && !isspace(ch)) {
+            return NOK;
+        }
+    }
+
+    return OK;
+}
 
 /**
  * The GTA decoder new context function should create and return a pointer
@@ -132,8 +157,7 @@ int gtaossl_provider_base_gta_decoder_decode(
     /* Currently unused */
     (void)pw_cb;
     (void)pw_cbarg;
-
-    LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
+    (void)selection;
 
     OSSL_PARAM params[4] = {0};
     int object_type = 0;
@@ -155,6 +179,12 @@ int gtaossl_provider_base_gta_decoder_decode(
     BIO_read_ex(bin, buf, sizeof(buf), &read);
     LOG_TRACE_ARG("Read (bytes): %zu", read);
     LOG_TRACE_ARG("Buffer: %s", buf);
+
+    if (OK != looks_like_gta_reference(buf, read)) {
+        LOG_TRACE("Input is not a GTA reference, skip decoder");
+        res = OK;
+        goto error2;
+    }
 
     read += 1;
 
