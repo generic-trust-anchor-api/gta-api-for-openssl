@@ -139,20 +139,42 @@ The following tools and libraries need to be installed for build and run the dem
 
 ## Run CMP demo
 
-* Change to the `demo` directory and create the necessary keys and certificates:
-    * __CMP__ key materials and certificates: 
-        ```
-            cd demo/cmp
-            ./prepare_cmp_demo.sh
-        ```
+The CMP demo is split into numbered stages under `demo/cmp`. Each stage reuses the state created by the previous one.
 
-* Run the cmp client to request a certificate:
+* Prepare the CMP workspace and start EJBCA if needed:
   ```
-  ./send_cr_cmp_message.sh
+  cd demo/cmp
+  ./0_prepare_cmp_demo.sh
   ```
-* Run the cmp client to send a key update request:
+  This script checks the local provider tooling, verifies Docker and Docker Compose, and starts the EJBCA demo stack automatically if it is not already running.
+
+* Imprint an IDevID:
   ```
-  ./send_kur_cmp_message.sh
+  ./1_imprint_idevid.sh [ec|rsa]
+  ```
+  Use `ec` for the EC demo or `rsa` for the RSA demo. If no argument is provided, the script defaults to `ec`.
+
+* Bootstrap the LDevID-Generic from the IDevID:
+  ```
+  ./2_bootstrap_ldevid-generic.sh [ec|rsa]
+  ```
+  This stage fetches the trust anchor from EJBCA and requests the LDevID-Generic certificate.
+
+* Enroll the application LDevID (LDevID-App):
+  ```
+  ./3_enroll_ldevid-app.sh [ec|rsa]
+  ```
+  This stage requests the application certificate using the LDevID-Generic from the previous step.
+
+* Update the application LDevID certificate:
+  ```
+  ./4_update_ldevid-app.sh
+  ```
+  This stage performs the CMP key update request and replaces the stored application certificate.
+
+* To stop the EJBCA demo stack run:
+  ```
+  docker compose -f ejbca/docker-compose.yml down
   ```
 
 ## Run integration tests
