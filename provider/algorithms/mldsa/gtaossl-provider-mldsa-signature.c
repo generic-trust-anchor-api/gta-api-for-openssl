@@ -24,7 +24,6 @@
 
 static OSSL_FUNC_signature_get_ctx_params_fn gtaossl_provider_mldsa_signature_get_ctx_params;
 static OSSL_FUNC_signature_settable_ctx_params_fn gtaossl_provider_mldsa_signature_settable_ctx_params;
-static OSSL_FUNC_signature_digest_sign_init_fn gtaossl_provider_mldsa_signature_digest_sign_init;
 
 static int gtaossl_provider_mldsa_signature_get_ctx_params(void * ctx, OSSL_PARAM params[])
 {
@@ -94,30 +93,12 @@ static const OSSL_PARAM * gtaossl_provider_mldsa_signature_settable_ctx_params(v
     return settable;
 }
 
-/* Check mdname before forwarding to base provider */
-static int gtaossl_provider_mldsa_signature_digest_sign_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[])
-{
-    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Input parameter mdname: %s", (NULL == mdname) ? "(null)" : mdname);
-
-    if ((NULL != mdname) && ('\0' != mdname[0])) {
-        LOG_ERROR_ARG("Digest %s unsupported for ML-DSA", mdname);
-        return NOK;
-    }
-
-    return gtaossl_provider_base_signature_sign_init(ctx, provkey, params);
-}
-
 const OSSL_DISPATCH mldsa_signature_functions[] = {
     {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))gtaossl_provider_base_signature_newctx},
     {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))gtaossl_provider_base_signature_freectx},
     {OSSL_FUNC_SIGNATURE_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_sign_init},
     {OSSL_FUNC_SIGNATURE_SIGN, (void (*)(void))gtaossl_provider_base_signature_sign},
-    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_mldsa_signature_digest_sign_init},
+    {OSSL_FUNC_SIGNATURE_DIGEST_SIGN_INIT, (void (*)(void))gtaossl_provider_base_signature_digest_init},
     {OSSL_FUNC_SIGNATURE_DIGEST_SIGN, (void (*)(void))gtaossl_provider_base_signature_digest_sign},
     {OSSL_FUNC_SIGNATURE_GET_CTX_PARAMS, (void (*)(void))gtaossl_provider_mldsa_signature_get_ctx_params},
     {OSSL_FUNC_SIGNATURE_GETTABLE_CTX_PARAMS, (void (*)(void))gtaossl_provider_base_signature_gettable_ctx_params},

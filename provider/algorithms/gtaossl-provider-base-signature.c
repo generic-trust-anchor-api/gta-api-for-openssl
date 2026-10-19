@@ -68,7 +68,10 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
 
     const OSSL_PARAM * p = NULL;
 
-    /* Check mdname if there */
+    /*
+     * Check mdname if there
+     * This should not be needed, as it is enforced by OSSL_PKEY_PARAM_MANDATORY_DIGEST
+     */
     if ((NULL != mdname) && (SUPPORTED_DIGEST != EVP_MD_get_type(EVP_get_digestbyname(mdname)))) {
         LOG_ERROR_ARG("Digest %s unsupported", mdname);
         return NOK;
@@ -102,6 +105,9 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
         }
     }
 
+    /*
+     * This should not be needed, as it is enforced by OSSL_PKEY_PARAM_MANDATORY_DIGEST
+     */
     LOG_DEBUG("Locate OSSL_SIGNATURE_PARAM_DIGEST");
     p = OSSL_PARAM_locate_const(params, OSSL_SIGNATURE_PARAM_DIGEST);
     if ((p != NULL) && ((p->data_type != OSSL_PARAM_UTF8_STRING) ||

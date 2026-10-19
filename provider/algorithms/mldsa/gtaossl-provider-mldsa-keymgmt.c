@@ -24,6 +24,7 @@
 #include <openssl/types.h>
 
 static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_mldsa_keymgmt_gettable_params;
+static OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_mldsa_keymgmt_get_params;
 static OSSL_FUNC_keymgmt_import_fn gtaossl_provider_mldsa_keymgmt_import;
 static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_mldsa_keymgmt_eximport_types;
 static OSSL_FUNC_keymgmt_query_operation_name_fn gtaossl_provider_mldsa_keymgmt_query_operation_name;
@@ -48,10 +49,28 @@ static const OSSL_PARAM * gtaossl_provider_mldsa_keymgmt_gettable_params(void * 
         OSSL_PARAM_int(OSSL_PKEY_PARAM_BITS, NULL),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_SECURITY_BITS, NULL),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_MAX_SIZE, NULL),
+        OSSL_PARAM_utf8_string(OSSL_PKEY_PARAM_MANDATORY_DIGEST, NULL, 0),
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_PUB_KEY, NULL, 0),
         OSSL_PARAM_END};
 
     return gettable;
+}
+
+/**
+ * The function reads requested params from keydata.
+ *
+ * @param[in] keydata: pointer of a key structure
+ * @param[out] params: array of OSSL_PARAMs
+ * @return OK = 1
+ * @return NOK = 0
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ */
+static int gtaossl_provider_mldsa_keymgmt_get_params(void * keydata, OSSL_PARAM * params)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    return gtaossl_provider_base_keymgmt_get_params(keydata, "UNDEF", params);
 }
 
 /**
@@ -125,7 +144,7 @@ const OSSL_DISPATCH mldsa_keymgmt_functions[] = {
     {OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))gtaossl_provider_base_keymgmt_new},
     {OSSL_FUNC_KEYMGMT_LOAD, (void (*)(void))gtaossl_provider_base_keymgmt_load},
     {OSSL_FUNC_KEYMGMT_FREE, (void (*)(void))gtaossl_provider_base_keymgmt_free},
-    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_get_params},
+    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_mldsa_keymgmt_get_params},
     {OSSL_FUNC_KEYMGMT_GETTABLE_PARAMS, (void (*)(void))gtaossl_provider_mldsa_keymgmt_gettable_params},
     {OSSL_FUNC_KEYMGMT_SET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_set_params},
     {OSSL_FUNC_KEYMGMT_SETTABLE_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_settable_params},

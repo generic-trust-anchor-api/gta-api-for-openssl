@@ -352,7 +352,7 @@ int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[]
  * The function reads requested params from keydata by converting the GTA_PKEY
  * to an EVP_PKEY and use OpenSSL functions.
  */
-int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, const char * mandatory_digest, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     OSSL_PARAM * p = NULL;
@@ -428,6 +428,15 @@ int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[]
         LOG_TRACE_ARG("max_size: %i", max_size);
         if (!OSSL_PARAM_set_int(p, max_size)) {
             LOG_ERROR_ARG("%s -> error  max size", __func__);
+            goto error;
+        }
+    }
+
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_MANDATORY_DIGEST);
+    if (p != NULL) {
+        LOG_TRACE_ARG("mandatory_digest: %s", mandatory_digest);
+        if (!OSSL_PARAM_set_utf8_string(p, mandatory_digest)) {
+            LOG_ERROR_ARG("%s -> error set parameter mandatory_digest", __func__);
             goto error;
         }
     }
