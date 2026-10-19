@@ -83,6 +83,7 @@ OSSL_FUNC_keymgmt_free_fn gtaossl_provider_base_keymgmt_free;
  * to an EVP_PKEY and use OpenSSL functions.
  *
  * @param[in] keydata: pointer of a key structure
+ * @param[in] mandatory_digest: string specifying the mandatory digest for this key/algorithm
  * @param[out] params: array of OSSL_PARAMs
  * @return OK = 1
  * @return NOK = 0
@@ -90,7 +91,7 @@ OSSL_FUNC_keymgmt_free_fn gtaossl_provider_base_keymgmt_free;
  * More details can be found at the following URL:
  * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
  */
-OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_base_keymgmt_get_params;
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, const char * mandatory_digest, OSSL_PARAM * params);
 
 /**
  * The function updates information data associated with the given keydata.
