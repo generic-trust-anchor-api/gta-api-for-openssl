@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -83,6 +83,7 @@ OSSL_FUNC_keymgmt_free_fn gtaossl_provider_base_keymgmt_free;
  * to an EVP_PKEY and use OpenSSL functions.
  *
  * @param[in] keydata: pointer of a key structure
+ * @param[in] mandatory_digest: string specifying the mandatory digest for this key/algorithm
  * @param[out] params: array of OSSL_PARAMs
  * @return OK = 1
  * @return NOK = 0
@@ -90,7 +91,7 @@ OSSL_FUNC_keymgmt_free_fn gtaossl_provider_base_keymgmt_free;
  * More details can be found at the following URL:
  * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
  */
-OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_base_keymgmt_get_params;
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, const char * mandatory_digest, OSSL_PARAM * params);
 
 /**
  * The function updates information data associated with the given keydata.
@@ -148,6 +149,27 @@ OSSL_FUNC_keymgmt_settable_params_fn gtaossl_provider_base_keymgmt_settable_para
 OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
 
 /**
+ * The function checks if the data subset indicated by selection
+ * in keydata1 and keydata2 match.
+ *
+ * 1. The `keydata1` parameter is a GTA_PKEY with SubjectPublicKeyInfo
+ *
+ * 2. The `keydata2` parameter is a GTA_PKEY with personality name and profile name
+ *
+ * 3. The public keys are compared. If they are equal, then return true.
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ *
+ * @param[in] keydata1: pointer to a key structure 1
+ * @param[in] keydata2: pointer to a key structure 2
+ * @param[in] selection: type of the selection
+ * @return OK = 1
+ * @return NOK = 0
+ */
+OSSL_FUNC_keymgmt_match_fn gtaossl_provider_base_keymgmt_match;
+
+/**
  * Helper function to get the public key from given GTA API personality.
  *
  * @param[in] pkey: pointer to the GTA_PKEY to be converted
@@ -158,44 +180,36 @@ OSSL_FUNC_keymgmt_has_fn gtaossl_provider_base_keymgmt_has;
 int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key);
 
 /**
- * Helper function to check if the key data of pkey1 and pkey2 match.
- *
- * 1. The `pkey1` parameter is an EVP_PKEY.
- *
- * 2. The `pkey2` parameter is a GTA_PKEY. This function retrievs the public key
- *    and converts it into a EVP_PKEY.
- *
- * @param[in] pkey1: pointer to an EVP_PKEY
- * @param[in] pkey2: pointer to a GTA_PKEY
- * @return OK = 1
- * @return NOK = 0
+ * The base key management import function imports data indicated
+ * by selection into keydata with values taken from the OSSL_PARAM(3) array params
  */
-int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2);
+int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[], const char * name);
 
 /**
- * The base key management import function imports data indicated
- * by selection into keydata with values taken from the OSSL_PARAM(3) array params:
- *
- * 1. In case of a public key, OSSL_PKEY_PARAM_PUB_KEY needs to be located and
- * copied into the GTA_PKEY structure object.
- *
- * 2. In case of key parameters selection, OSSL_PKEY_PARAM_GROUP_NAME can be located
- * and show in the log, because of debug purposes.
+ * The OSSL_FUNC_keymgmt_has() function checks whether the given keydata
+ * contains the subsets of data indicated by the selector.
+ * The current solution does not contain any implementation in the demo application,
+ * but this function needs to defined to avoid the following error:
+ * server: -
+ * client: Could not find client certificate private key from gta-key.pem
+ *         80FB619B377F0000:error:1608010C:STORE routines:ossl_store_handle_load_result:
+ *         unsupported:crypto/store/store_result.c:151:
  *
  * More details can be found at the following URL:
  * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
  *
+ * @param[in] keydata: pointer of a key structure
  * @param[in] selection: type of the selection
- * @param[in] params: array of the OSSL parameters
- * @param[out] keydata: pointer of a key structure
+ * @param[in] param_cb: callback function
+ * @param[in] cbarg: parameters of the callback function
  * @return OK = 1
  * @return NOK = 0
  *
  * The preprocessor-generated function signature:
  *
- * int gtaossl_provider_base_keymgmt_import(void *keydata, int selection, const OSSL_PARAM params[])
+ * int gtaossl_provider_base_keymgmt_export(void *keydata, int selection, OSSL_CALLBACK *param_cb, void *cbarg)
  */
-OSSL_FUNC_keymgmt_import_fn gtaossl_provider_base_keymgmt_import;
+OSSL_FUNC_keymgmt_export_fn gtaossl_provider_base_keymgmt_export;
 
 #ifdef __cplusplus
 }
