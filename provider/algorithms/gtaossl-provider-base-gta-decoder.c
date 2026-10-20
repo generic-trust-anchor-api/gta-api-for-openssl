@@ -79,58 +79,6 @@ void gtaossl_provider_base_gta_decoder_freectx(void * ctx)
     OPENSSL_clear_free(dctx, sizeof(GTA_DECODER_CTX));
 }
 
-char * strlwr(char * str)
-{
-    unsigned char * p = (unsigned char *)str;
-
-    while (*p) {
-        *p = (unsigned char)tolower(*p);
-        p++;
-    }
-
-    return str;
-}
-
-int str_equals_ignore_case(const char * str1, const char * str2)
-{
-
-    char * lower_str1 = strdup(str1);
-    lower_str1 = strlwr(lower_str1);
-
-    LOG_TRACE_ARG("str1: lower(%s) = %s ", str1, lower_str1);
-
-    char * lower_str2 = strdup(str2);
-    lower_str2 = strlwr(lower_str2);
-
-    LOG_TRACE_ARG("str2: lower(%s) = %s ", str2, lower_str2);
-
-    if (0 == strcmp(str1, str2)) {
-        return OK;
-    }
-
-    return NOK;
-}
-
-int str_contains_ignore_case(const char * str1, const char * str2)
-{
-
-    char * lower_str1 = strdup(str1);
-    lower_str1 = strlwr(lower_str1);
-
-    LOG_TRACE_ARG("str1: lower(%s) = %s ", str1, lower_str1);
-
-    char * lower_str2 = strdup(str2);
-    lower_str2 = strlwr(lower_str2);
-
-    LOG_TRACE_ARG("str2: lower(%s) = %s ", str2, lower_str2);
-
-    if (NULL == strstr(str1, str2)) {
-        return NOK;
-    }
-
-    return OK;
-}
-
 /**
  * Thew function should decode the data as read from the OSSL_CORE_BIO
  * (the key BIO objects are replaced with GTA API references,
@@ -249,7 +197,7 @@ int gtaossl_provider_base_gta_decoder_decode(
             LOG_TRACE_ARG("Keytype from GTA personality: %s", ostream_data.buf);
             LOG_TRACE_ARG("Expected keytype: %s", expected_keytype);
 
-            if (str_equals_ignore_case(expected_keytype, ostream_data.buf)) {
+            if (0 == strcasecmp(expected_keytype, ostream_data.buf)) {
                 LOG_DEBUG("Decoder selected");
             } else {
                 LOG_DEBUG("Skip decoder");
