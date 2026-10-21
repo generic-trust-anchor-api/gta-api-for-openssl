@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -43,26 +43,23 @@
  * 4. Key management, decoder and encoder functions need to adopt the GTA key handling
  *    during the loading, export, import and conversion of a key data:
  *    a) If necessary, retrieve the public key from the GTA API and parse the EC
- *       or Dilithium key data from different structures.
+ *       or ML-DSA key data from different structures.
  *    b) The provider needs to support reading the ASN1 public key and X509 structures if
- *       the key type is of Elliptic Curve or Dilithium 2.
+ *       the key type is of Elliptic Curve or ML-DSA.
  *       @note: PublicKeyInfo_st (EC public key) is declared in provider\algorithms\ecdsa\gtaossl-provider-ecdsa-types.h
  *       implemented in provider\algorithms\ecdsa\gtaossl-provider-ecdsa-types.c
- *       @note: PublicKeyInfo_Dilithium_st (Dilithium public key) is declared in
- * provider\algorithms\dilithium\gtaossl-provider-dilithium-types.h implemented in
- * provider\algorithms\dilithium\gtaossl-provider-dilithium-types.c
+ *       @note: The ML-DSA public key ASN.1 structure is declared in the
+ *       algorithm-specific types header and implemented in the matching source file.
  *
  * @note The proof-of-concept provider realizes only the client-side TLS connection.
- *       The certificate preparation script and server side use the open-quantum-safe/oqs-provider.
+ *       The certificate preparation script and server side rely on OpenSSL native algorithms.
  *
  * @note The default setup of the GTA API software provider does not contain a post-quantum
  *       solution. It needs to be activated during the build of the SW provider.
  *
- * @note The proof-of-concept provider is implemented and tested with OpenSSL 3.2.0
+ * @note The proof-of-concept provider is implemented and tested with OpenSSL 3.5.0
  *
  * OpenSSL provider basics: https://docs.openssl.org/3.2/man7/provider/
- *
- * OQS Provider: https://github.com/open-quantum-safe/oqs-provider
  *
  * GTA API Core: https://github.com/generic-trust-anchor-api/gta-api-core
  *
@@ -104,7 +101,6 @@ typedef struct {
     gta_personality_name_t personality_name;
     char * pub_key;
     size_t pub_key_size;
-    int group_nid;
     GTA_PROVIDER_CTX * provctx;
 } GTA_PKEY;
 

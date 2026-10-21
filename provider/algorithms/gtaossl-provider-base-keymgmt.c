@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -61,9 +61,10 @@ void * gtaossl_provider_base_keymgmt_new(void * provctx)
  */
 void * gtaossl_provider_base_keymgmt_load(const void * reference, size_t reference_sz)
 {
-    LOG_INFO("Key manager loads object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("reference_sz: %zu", reference_sz);
+
+    /* Currently unused */
+    (void)reference_sz;
 
     GTA_PKEY * pkey = *(GTA_PKEY **)reference;
 
@@ -120,6 +121,7 @@ int gtaossl_provider_base_keymgmt_set_params(void * keydata, const OSSL_PARAM pa
         return OK;
     }
 
+    /* This needs to be implemented more generic, or moved to the algorithm specific part */
     p = OSSL_PARAM_locate_const(params, OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY);
     if (p != NULL) {
         LOG_TRACE_ARG("%s -> pub key located", __func__);
@@ -140,6 +142,7 @@ const OSSL_PARAM * gtaossl_provider_base_keymgmt_settable_params(void * provctx)
     /* Currently unused */
     (void)provctx;
 
+    /* This needs to be moved to the algorithm specific part */
     static OSSL_PARAM settable[] = {
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY, NULL, 0), OSSL_PARAM_END};
 
@@ -153,24 +156,14 @@ const OSSL_PARAM * gtaossl_provider_base_keymgmt_settable_params(void * provctx)
  */
 int gtaossl_provider_base_keymgmt_has(const void * keydata, int selection)
 {
-    LOG_INFO("Key manager tries to read key data from store");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Selection = %d", selection);
 
-    if (keydata == NULL) {
-        LOG_TRACE("Key data is null");
-    } else {
-        LOG_TRACE("Key data is not null");
-#if LOG_LEVEL == LOG_LEVEL_TRACE
-        const GTA_PKEY * pkey = (const GTA_PKEY *)keydata;
+    /* Currently unused */
+    (void)keydata;
+    (void)selection;
 
-        LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
-        LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
-        LOG_TRACE_ARG("Function(%s) GTA pkey->profile_name = %s", __func__, pkey->profile_name);
-#endif
-    }
-
-    LOG_DEBUG_ARG("Do nothing method [%s], only return with true value", __func__);
+    LOG_DEBUG("We don't do any checks here and just return OK");
     return OK;
 }
 
@@ -233,11 +226,38 @@ int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key)
 }
 
 /**
- * Helper function to check if the key data of pkey1 and pkey2 match.
+ * The function checks if the data subset indicated by selection
+ * in keydata1 and keydata2 match.
  */
-int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2)
+int gtaossl_provider_base_keymgmt_match(const void * keydata1, const void * keydata2, int selection)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+
+    /* Currently unused */
+    (void)selection;
+
+    if ((NULL == keydata1) || (NULL == keydata2)) {
+        LOG_ERROR("keydata1 and/or keydata2 is null");
+        return NOK;
+    }
+
+    const GTA_PKEY * pkey1 = (const GTA_PKEY *)keydata1;
+    const GTA_PKEY * pkey2 = (const GTA_PKEY *)keydata2;
+
+    /* We need a temporary copy of the key */
+    const unsigned char * pub_key_tmp = OPENSSL_memdup(pkey1->pub_key, pkey1->pub_key_size);
+    if (NULL == pub_key_tmp) {
+        LOG_ERROR("Memory allocation failed!");
+        return NOK;
+    }
+
+    /* Convert SubjectPublicKeyInfo to EVP_PKEY */
+    EVP_PKEY * key1 = d2i_PUBKEY(NULL, &pub_key_tmp, pkey1->pub_key_size);
+    if (NULL == key1) {
+        LOG_ERROR("Converting pkey1 to EVP_PKEY failed!");
+        return NOK;
+    }
+
     LOG_TRACE_ARG("Function (%s) GTA pkey2->string = %s", __func__, pkey2->string);
     LOG_TRACE_ARG("Function (%s) GTA pkey2->personality_name = %s", __func__, pkey2->personality_name);
     LOG_TRACE_ARG("Function (%s) GTA pkey2->profile_name = %s", __func__, pkey2->profile_name);
@@ -246,7 +266,8 @@ int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2)
     if (!base_get_public_key(pkey2, &key2)) {
         return NOK;
     }
-    int result = EVP_PKEY_eq(pkey1, key2);
+    int result = EVP_PKEY_eq(key1, key2);
+    EVP_PKEY_free(key1);
     EVP_PKEY_free(key2);
 
     LOG_TRACE_ARG("Comparison result: %i", result);
@@ -255,6 +276,7 @@ int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2)
         result = NOK;
         LOG_ERROR("Comparison failed!");
     }
+
     return result;
 }
 
@@ -262,12 +284,10 @@ int base_keymgmt_match(const EVP_PKEY * pkey1, const GTA_PKEY * pkey2)
  * The base key management import function imports data indicated
  * by selection into keydata with values taken from the OSSL_PARAM(3) array params
  */
-int gtaossl_provider_base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[])
+int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[], const char * name)
 {
-    LOG_INFO("Key manager imports key object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("%s selection: %d", __func__, selection);
-    const OSSL_PARAM * p = NULL;
+    int ret = NOK;
 
     GTA_PKEY * pkey = (GTA_PKEY *)keydata;
 
@@ -282,49 +302,61 @@ int gtaossl_provider_base_keymgmt_import(void * keydata, int selection, const OS
 
     if (selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) {
         LOG_TRACE_ARG("%s OSSL Param locate in pub key", __func__);
-        p = OSSL_PARAM_locate_const(params, OSSL_PKEY_PARAM_PUB_KEY);
-        if (p != NULL) {
 
-            if ((pkey->pub_key = OPENSSL_zalloc(p->data_size)) == NULL) {
-                LOG_ERROR("Allocation error of pub key");
-                return NOK;
-            }
+        EVP_PKEY_CTX * ctx = EVP_PKEY_CTX_new_from_name(NULL, name, NULL);
+        EVP_PKEY * key = NULL;
+        OSSL_PARAM * mutable_params = NULL;
+        int len = 0;
 
-            pkey->pub_key_size = p->data_size;
-            memcpy(pkey->pub_key, p->data, p->data_size);
-
-            LOG_TRACE_ARG("p->data_size: %zu", p->data_size);
-            for (int i = 0; i < p->data_size; i++) {
-                LOG_TRACE_KEY_DATA_ARG("%#x ", ((unsigned char *)p->data)[i]);
-            }
-            LOG_TRACE_KEY_DATA(LOG__EOM);
-
-        } else {
-            LOG_TRACE_ARG("%s p null", __func__);
+        if (NULL == ctx) {
+            LOG_ERROR("EVP_PKEY_CTX_new_from_name failed");
+            return NOK;
         }
+
+        if (EVP_PKEY_fromdata_init(ctx) <= 0) {
+            LOG_ERROR("EVP_PKEY_fromdata_init failed");
+            EVP_PKEY_CTX_free(ctx);
+            return NOK;
+        }
+
+        mutable_params = OSSL_PARAM_dup(params);
+        if (NULL == mutable_params) {
+            LOG_ERROR("OSSL_PARAM duplication failed");
+            EVP_PKEY_CTX_free(ctx);
+            return NOK;
+        }
+
+        if (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, mutable_params) <= 0) {
+            LOG_ERROR("EVP_PKEY_fromdata failed");
+            OSSL_PARAM_free(mutable_params);
+            EVP_PKEY_CTX_free(ctx);
+            return NOK;
+        }
+        OSSL_PARAM_free(mutable_params);
+        EVP_PKEY_CTX_free(ctx);
+
+        /* Convert to SubjectPublicKeyInfo */
+        len = i2d_PUBKEY(key, (unsigned char **)&pkey->pub_key);
+        if (0 >= len) {
+            LOG_ERROR("i2d_PUBKEY failed");
+            return NOK;
+        }
+        pkey->pub_key_size = len;
+        LOG_TRACE_ARG("len: %i", len);
+
+        EVP_PKEY_free(key);
+        ret = OK;
     }
 
-    if (selection & OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) {
-        LOG_TRACE_ARG("%s OSSL Param locate all", __func__);
-        p = OSSL_PARAM_locate_const(params, OSSL_PKEY_PARAM_GROUP_NAME);
-        if (p != NULL) {
-            LOG_TRACE_ARG("p->data = %s", (char *)p->data);
-            pkey->group_nid = OBJ_sn2nid(p->data);
-            LOG_TRACE_ARG("nid = %i", pkey->group_nid);
-        } else {
-            LOG_TRACE_ARG("%s p2 null", __func__);
-        }
-    }
-
-    LOG_TRACE_ARG("%s return 1", __func__);
-    return OK;
+    LOG_TRACE_ARG("%s return %i", __func__, ret);
+    return ret;
 }
 
 /**
  * The function reads requested params from keydata by converting the GTA_PKEY
  * to an EVP_PKEY and use OpenSSL functions.
  */
-int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, const char * mandatory_digest, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     OSSL_PARAM * p = NULL;
@@ -404,9 +436,65 @@ int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[]
         }
     }
 
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_MANDATORY_DIGEST);
+    if (p != NULL) {
+        LOG_TRACE_ARG("mandatory_digest: %s", mandatory_digest);
+        if (!OSSL_PARAM_set_utf8_string(p, mandatory_digest)) {
+            LOG_ERROR_ARG("%s -> error set parameter mandatory_digest", __func__);
+            goto error;
+        }
+    }
+
     OPENSSL_free(group_name);
     return OK;
 error:
     OPENSSL_free(group_name);
     return NOK;
+}
+
+int gtaossl_provider_base_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    LOG_TRACE_ARG("Selection = %d", selection);
+
+    int result = NOK;
+    const GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+    OSSL_PARAM * params = NULL;
+    int export_selection = selection & ~OSSL_KEYMGMT_SELECT_PRIVATE_KEY;
+
+#if LOG_LEVEL == LOG_LEVEL_TRACE
+    LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->profile_name = %s", __func__, pkey->profile_name);
+
+    LOG_TRACE_ARG("Function(%s) GTA pkey->pub_key = %s", __func__, pkey->pub_key);
+    LOG_TRACE_ARG("Function(%s)  GTA pkey->pub_key_size = %zu", __func__, pkey->pub_key_size);
+#endif
+
+    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
+        LOG_TRACE("OSSL_KEYMGMT_SELECT_PRIVATE_KEY");
+        return NOK;
+    }
+
+    if (0 == export_selection) {
+        LOG_ERROR("No exportable public selection requested");
+        return NOK;
+    }
+
+    EVP_PKEY * key = NULL;
+    if (!base_get_public_key(pkey, &key)) {
+        return NOK;
+    }
+
+    if (0 >= EVP_PKEY_todata(key, export_selection, &params) || (NULL == params)) {
+        LOG_ERROR("EVP_PKEY_todata failed");
+        EVP_PKEY_free(key);
+        return NOK;
+    }
+
+    LOG_TRACE("Call param_cb");
+    result = param_cb(params, cbarg);
+    OSSL_PARAM_free(params);
+    EVP_PKEY_free(key);
+    return result;
 }

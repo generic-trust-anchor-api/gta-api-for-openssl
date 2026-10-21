@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright 2025 Siemens
+ * SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,6 +19,31 @@
 #include <string.h>
 
 extern int gtaossl_provider_base_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg);
+
+static int looks_like_gta_reference(const char * buf, size_t len)
+{
+    if ((NULL == buf) || (0 == len)) {
+        return NOK;
+    }
+
+    if (NULL == memchr(buf, ',', len)) {
+        return NOK;
+    }
+
+    for (size_t i = 0; i < len; ++i) {
+        unsigned char ch = (unsigned char)buf[i];
+
+        if ('\0' == ch) {
+            return OK;
+        }
+
+        if (!isprint(ch) && !isspace(ch)) {
+            return NOK;
+        }
+    }
+
+    return OK;
+}
 
 /**
  * The GTA decoder new context function should create and return a pointer
@@ -54,58 +79,6 @@ void gtaossl_provider_base_gta_decoder_freectx(void * ctx)
     OPENSSL_clear_free(dctx, sizeof(GTA_DECODER_CTX));
 }
 
-char * strlwr(char * str)
-{
-    unsigned char * p = (unsigned char *)str;
-
-    while (*p) {
-        *p = (unsigned char)tolower(*p);
-        p++;
-    }
-
-    return str;
-}
-
-int str_equals_ignore_case(const char * str1, const char * str2)
-{
-
-    char * lower_str1 = strdup(str1);
-    lower_str1 = strlwr(lower_str1);
-
-    LOG_TRACE_ARG("str1: lower(%s) = %s ", str1, lower_str1);
-
-    char * lower_str2 = strdup(str2);
-    lower_str2 = strlwr(lower_str2);
-
-    LOG_TRACE_ARG("str2: lower(%s) = %s ", str2, lower_str2);
-
-    if (0 == strcmp(str1, str2)) {
-        return OK;
-    }
-
-    return NOK;
-}
-
-int str_contains_ignore_case(const char * str1, const char * str2)
-{
-
-    char * lower_str1 = strdup(str1);
-    lower_str1 = strlwr(lower_str1);
-
-    LOG_TRACE_ARG("str1: lower(%s) = %s ", str1, lower_str1);
-
-    char * lower_str2 = strdup(str2);
-    lower_str2 = strlwr(lower_str2);
-
-    LOG_TRACE_ARG("str2: lower(%s) = %s ", str2, lower_str2);
-
-    if (NULL == strstr(str1, str2)) {
-        return NOK;
-    }
-
-    return OK;
-}
-
 /**
  * Thew function should decode the data as read from the OSSL_CORE_BIO
  * (the key BIO objects are replaced with GTA API references,
@@ -132,8 +105,7 @@ int gtaossl_provider_base_gta_decoder_decode(
     /* Currently unused */
     (void)pw_cb;
     (void)pw_cbarg;
-
-    LOG_TRACE_ARG("%s - selection=%d", __func__, selection);
+    (void)selection;
 
     OSSL_PARAM params[4] = {0};
     int object_type = 0;
@@ -155,6 +127,12 @@ int gtaossl_provider_base_gta_decoder_decode(
     BIO_read_ex(bin, buf, sizeof(buf), &read);
     LOG_TRACE_ARG("Read (bytes): %zu", read);
     LOG_TRACE_ARG("Buffer: %s", buf);
+
+    if (OK != looks_like_gta_reference(buf, read)) {
+        LOG_TRACE("Input is not a GTA reference, skip decoder");
+        res = OK;
+        goto error2;
+    }
 
     read += 1;
 
@@ -198,7 +176,7 @@ int gtaossl_provider_base_gta_decoder_decode(
     dctx->h_ctx = gta_context_open(dctx->provider_ctx->h_inst, pkey->personality_name, pkey->profile_name, &errinfo);
 
     if (NULL == dctx->h_ctx) {
-        LOG_WARN_ARG("Skip decoder, because of the GTA context open problem: %lu", errinfo);
+        LOG_ERROR_ARG("GTA context open problem: %lu", errinfo);
         return NOK;
     } else {
 
@@ -219,7 +197,7 @@ int gtaossl_provider_base_gta_decoder_decode(
             LOG_TRACE_ARG("Keytype from GTA personality: %s", ostream_data.buf);
             LOG_TRACE_ARG("Expected keytype: %s", expected_keytype);
 
-            if (str_equals_ignore_case(expected_keytype, ostream_data.buf)) {
+            if (0 == strcasecmp(expected_keytype, ostream_data.buf)) {
                 LOG_DEBUG("Decoder selected");
             } else {
                 LOG_DEBUG("Skip decoder");
