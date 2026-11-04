@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright 2026 Siemens
+#
+# SPDX-License-Identifier: Apache-2.0
+
+[wrap-git]
+url = https://github.com/thorsteinssonh/bash_test_tools.git
+revision = 8acd3af7b29b61dfc86e9b6c4d8c828665b0d0b1
+depth = 1
+
+patch_directory = bash_test_tools

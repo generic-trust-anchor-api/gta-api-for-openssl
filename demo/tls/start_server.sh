@@ -4,6 +4,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+if [[ "${WORK_DIR}" == "" ]]; then
+    export _WD="."
+else
+    export _WD="${WORK_DIR}"
+fi
+
+echo "Working directory: $_WD"
+
 # OPENSSL_CONF=../openssl_config/openssl_provider_oqs.cnf
 
 # KEM_ALG=kyber768
@@ -19,8 +27,8 @@
 #fi
 
 # Start command with Dilithium base key materials 
-#openssl s_server -provider default -provider oqsprovider -cert cert.pem -key key.pem -www -tls1_3 -accept 44330 -CAfile ../CA/CAcert.pem -Verify 1
-openssl s_server -cert cert.pem -key key.pem -www -tls1_3 -accept 44330 -CAfile ../CA/CAcert.pem -Verify 1
+#openssl s_server -provider default -provider oqsprovider -cert "$_WD/server/cert.pem" -key "$_WD/server/key.pem" -www -tls1_3 -accept 44330 -CAfile "$_WD/server/../CA/CAcert.pem" -Verify 1
+openssl s_server -cert "$_WD/server/cert.pem" -key "$_WD/server/key.pem" -www -tls1_3 -accept 44330 -CAfile "$_WD/server/../CA/CAcert.pem" -Verify 1
 
 # Debug options:
 # -debug
