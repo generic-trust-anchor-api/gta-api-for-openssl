@@ -724,7 +724,7 @@ int OSSL_provider_init(
         return NOK;
     }
 
-    char resolved[PATH_MAX];
+    char resolved[PATH_MAX] = {0};
     if (realpath(value, resolved) == NULL) {
         LOG_ERROR("Configuration problem: not able to resolve the path");
         return NOK;
@@ -735,7 +735,7 @@ int OSSL_provider_init(
         return NOK;
     }
 
-    istream_from_buf_init(&init_config, resolved, sizeof(resolved) - 1);
+    istream_from_buf_init(&init_config, resolved, strnlen(resolved, PATH_MAX) + 1);
 
     struct gta_provider_info_t provider_info = {
         .version = 0,
