@@ -51,20 +51,37 @@ function setup
 function teardown
 {
     echo "Teardown test..."
-    killall -s 9 openssl
+    killall -s 9 openssl &>/dev/null
     return 0
 }
 
 # Test definitions
 # shellcheck source=/dev/null
-source "$DIR/test_tls_default.sh"
-# shellcheck source=/dev/null
 source "$DIR/test_tls_ec.sh"
-# Post quantum support is deactivated
 # shellcheck source=/dev/null
-# source "$DIR/test_tls_dilithium.sh"
+source "$DIR/test_tls_rsa.sh"
+
+if [[ "${ENABLE_PQC:-false}" == "true" ]]; then
+    # shellcheck source=/dev/null
+    source "$DIR/test_tls_mldsa.sh"
+fi
+
 # shellcheck source=/dev/null
 source "$DIR/test_cmp_ec.sh"
+
+# OpenSSL 3.0/3.1 CMP does not use the provider's signature algorithm
+# identifier for message protection, mislabeling RSA-PSS as PKCS#1 v1.5.
+# Run the tests only with OpenSSL >= 3.2.0.
+if openssl version 2>/dev/null | grep -Eq 'OpenSSL 3\.[01]\.'; then
+    echo "Skipping CMP RSA test on OpenSSL 3.0.x/3.1.x"
+else
+    # shellcheck source=/dev/null
+    source "$DIR/test_cmp_rsa.sh"
+fi
+if [[ "${ENABLE_PQC:-false}" == "true" ]]; then
+    # shellcheck source=/dev/null
+    source "$DIR/test_cmp_mldsa.sh"
+fi
 
 # Run all test functions
 testrunner

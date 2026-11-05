@@ -7,37 +7,42 @@
 function test_cmp_ec
 {
     echo "Test CMP with EC"
-    echo "Prepare test"
-    (cd demo/cmp && ./prepare_cmp_demo.sh &>/dev/null)
-    sleep 2
+    cd demo/cmp || exit
 
-    echo "Create and send CMP cr"
-    cd demo/cmp || exit 
-    run ./send_cr_cmp_message.sh 
-    sleep 2
+    run "./0_prepare_cmp_demo.sh"
+    assert_exit_success
+    assert_terminated_normally
 
-    assert_output_contains "CMP info: sending CR" 
-    assert_output_contains "CMP DEBUG: finished reading response from CMP server"
+    run "./1_imprint_idevid.sh ec"
+    assert_success
+    assert_output_contains "CMP info: sending IR" 
+    assert_output_contains "CMP info: received IP"
+    assert_output_contains "Attribute Type:   ch.iec.30168.trustlist.certificate.self.x509"
+    assert_output_contains "Attribute Name:   IDevID_EE"
+
+
+    run "./2_bootstrap_ldevid-generic.sh ec"
+    assert_success
+    assert_output_contains "CMP info: sending CR"
     assert_output_contains "CMP info: received CP"
-    assert_output_contains "CMP DEBUG: successfully validated signature-based CMP message protection using trust store"
-    assert_output_contains "CMP DEBUG: validating CMP message"
-    assert_output_contains "Attribute Name:   Test Cert"
-    assert_output_contains "Attribute Name:   ECC Root CA"
-    assert_output_contains "Attribute Name:   Root CA"
+    assert_output_contains "Attribute Type:   ch.iec.30168.trustlist.certificate.self.x509"
+    assert_output_contains "Attribute Name:   LDevID-Generic_EE"
+    assert_output_contains "Attribute Type:   ch.iec.30168.trustlist.certificate.trusted.x509v3"
+    assert_output_contains "Attribute Name:   LDevID-Generic_TA"
 
-    echo "Create and send CMP kur"
-    run ./send_kur_cmp_message.sh
-    sleep 1
- 
-    assert_output_contains "CMP DEBUG: successfully validated signature-based CMP message protection using trust store"
-    assert_output_contains "CMP DEBUG: success building chain for own CMP signer cert"
-    assert_output_contains "CMP DEBUG: Starting new transaction"
+    run "./3_enroll_ldevid-app.sh ec"
+    assert_success
+    assert_output_contains "CMP info: sending CR"
+    assert_output_contains "CMP info: received CP"
+    assert_output_contains "Attribute Type:   ch.iec.30168.trustlist.certificate.self.x509"
+    assert_output_contains "Attribute Name:   LDevID-App_EE"
+
+    run "./4_update_ldevid-app.sh"
+    assert_success
     assert_output_contains "CMP info: sending KUR"
     assert_output_contains "CMP info: received KUP"
-    assert_output_contains "CMP DEBUG: successfully validated signature-based CMP message protection using trust store"
-    assert_output_contains "CMP DEBUG: validating CMP message"
-    assert_output_contains "Attribute Name:   Test Cert"
-    assert_output_contains "Attribute Name:   ECC Root CA"
-    assert_output_contains "Attribute Name:   Root CA"
+    assert_output_contains "Attribute Type:   ch.iec.30168.trustlist.certificate.self.x509"
+    assert_output_contains "Attribute Name:   LDevID-App_EE"
+
     return 0
 }

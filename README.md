@@ -13,10 +13,12 @@ called in a custom OpenSSL provider for the client authentication during the TLS
 handshake.
 
 Current limitations in OpenSSL provider:
-* CA certificate currently not protected using GTA API.
 * No proper error handling.
 * Probably some memory leaks.
-* Currently supports only ECC (tested with NIST P-256) and Dilithium2 (needs to be updated)
+* Currently supports ECC (tested with NIST P-256), RSA (tested with RSA 2048) and ML-DSA-65.
+* CA certificate protection:
+  * Currently not supported in TLS example, because `s_client` does not use the provider to load the certificate.
+  * Supported in CMP example.
 
 Additional feature:
 * Send certificate signing request with [RFC 4210](https://datatracker.ietf.org/doc/html/rfc4210) protocol.
@@ -39,8 +41,8 @@ graph TD;
 | ./meson_options.txt | Project‑specific configuration options used by the Meson build system |
 | ./provider  | OpenSSL provider implementation for using the GTA API framework/middleware and GTA API Software Provider |
 | ./tests     | Integration tests to cover the demo scenarios (TLS handshake, generate CMP message) |
-| ./demo      | TLS clint/server and CMP demo |
-| ./deps      | Installation director of GTA API Software Provider as a "merged static library" |
+| ./demo      | TLS client/server and CMP demo |
+| ./deps      | Installation directory of the GTA API Software Provider as a "merged static library" |
 
 ## Prerequisite 
 The following tools and libraries need to be installed for build and run the demo project.
@@ -52,27 +54,13 @@ The following tools and libraries need to be installed for build and run the dem
 
 - __GTA API Software Provider:__ Generic Trust Anchor API SW Provider. This project implements a Software-based Provider for the Generic Trust Anchor API and can be used by gta-api-core.
     * A `merged static library` is needed for the OpenSSL Provider. It can be downloaded as build artifact from the [GTA Software Provider](https://github.com/generic-trust-anchor-api/gta-api-sw-provider.git) project.
-    * It is intended for development only and not for productive use.
-    * In case of Dilithium 2, the post quantum crypto needs to be activated (in the gta-api-sw-provider/__meson_options.txt__):
-        ```
-        # SPDX-FileCopyrightText: Copyright 2024 Siemens
-        #
-        # SPDX-License-Identifier: Apache-2.0
-
-        option('build', type : 'combo', choices : ['debug', 'release' ], value : 'debug', description : 'Select build type with associated tool configuration')
-        option('build-dependencies', type : 'boolean', value : true, yield: true, description : 'Select whether to build dependencies locally rather than use system installed libraries.')
-        option('disable-deprecated-warnings', type : 'boolean', value : true, description : 'Select whether or not warnings for deprecated functions are displayed.')
-        option('enable-post-quantum-crypto', type : 'boolean', value : false, description : 'This switch enables post quantum crypto algorithms.')
-        option('enable-test-log', type : 'boolean', value : false, description : 'This switch enables log messages for the provider tests.')
-        option('build-examples', type : 'boolean', value : false, description : 'This switch enables the build of examples.')
-        ```
 
 - __Additional development and test packages:__
     * __strace__: to intercept and record the system calls or event of an application.
     * __meson:__ Python-based build system generator like Automake or CMake
     * __ninja-build:__ Build tool like make
     * __build-essential:__ Meta-package to install a full build environment on Debian-based systems
-    * __libssl-dev:__ Development package for OpenSSL
+    * __libssl-dev:__ Development package for OpenSSL. For non-PQC builds (enable-post-quantum-crypto=false), OpenSSL >= 3.0.0 is required; for PQC-enabled builds (enable-post-quantum-crypto=true), OpenSSL >= 3.5.0 is required.
     * __pkg-config:__ Tool required by meson to figure out compiler/linker options for library dependencies
   
     Install command in case of the debian based Linux: 
@@ -82,26 +70,39 @@ The following tools and libraries need to be installed for build and run the dem
 
 ### Runtime dependencies 
 
-- __OpenSSL 3.2.x (or newer):__ OpenSSL 3.2.0 needs to be installed on the system.
+- __OpenSSL runtime requirement:__ When the provider is compiled with PQC enabled (enable-post-quantum-crypto=true), OpenSSL >= 3.5.0 is required. When PQC is disabled (enable-post-quantum-crypto=false), OpenSSL >= 3.0.0 is required.
 
 - __GTA CLI:__ GTA API command line interface to call the GTA SW provider.
-    * It is intended for development only and not for productive use.
     * Follow the installation guideline on the [gta_cli](https://github.com/generic-trust-anchor-api/gta-cli.git) web page. 
       
 ## Build demo
 
 * Compile and install the OpenSSL provider and helper programs:
   ```
-  $ meson setup <build_dir> -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+  $ meson setup <build_dir>
 
   $ ninja -C <build_dir>
 
   $ sudo ninja -C <build_dir> install
   ```
 
+  For a PQC-enabled build, use:
+  ```
+  $ meson setup <build_dir> -Denable-post-quantum-crypto=true
+  ```
+
+  For a non-PQC build, use:
+  ```
+  $ meson setup <build_dir>
+  ```
+  or
+  ```
+  $ meson setup <build_dir> -Denable-post-quantum-crypto=false
+  ```
+
   If OpenSSL is installed in a non-standard location, override the detected provider directory explicitly:
   ```
-  $ meson setup <build_dir> -Dopenssl_modules_dir=/path/to/ossl-modules -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
+  $ meson setup <build_dir> -Dopenssl_modules_dir=/path/to/ossl-modules
   ```
 
 ##### Available Meson options:
@@ -110,13 +111,11 @@ The following tools and libraries need to be installed for build and run the dem
 |-------------|------|----------------|-------------|
 | openssl_modules_dir | string | empty (auto-detected) | OpenSSL provider directory override |
 | gta_state_directory | string | . | Directory to store the state of the GTA API SW provider in case the environment variable `GTA_STATE_DIRECTORY` is not present |
-| ec_on | boolean | true | Enable Elliptic Curve support |
-| dilithium_on | boolean | false | Enable Dilithium (PQC) support |
-| log_level | integer | 0 | Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4) |
+| enable-post-quantum-crypto | boolean | false | Enable PQC |
+| log_level | integer | 4 | Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4) |
 | log_b64_on | boolean | true | Enable showing base64 decoded data in the log |
 | log_byte_array_on | boolean | false | Enable showing byte array data in the log |
 | log_for_cycle_on | boolean | false | Enable showing state of the for cycle in the log |
-| build_type | combo | debug | Select build type with tool configuration (choices: debug, release) |
 
 ## Run TLS demo
 
@@ -124,7 +123,7 @@ The following tools and libraries need to be installed for build and run the dem
     * __Elliptic Curve__ key material and certificates: 
         ```
             cd demo/tls
-            ./prepare_tls_demo.sh
+            ./prepare_tls_demo.sh ec
         ```
 
 * In one terminal change into the server directory and start the server:
@@ -140,21 +139,44 @@ The following tools and libraries need to be installed for build and run the dem
 
 ## Run CMP demo
 
-* Change to the `demo` directory and create the necessary keys and certificates:
-    * __CMP__ key materials and certificates: 
-        ```
-            cd demo/cmp
-            ./prepare_cmp_demo.sh
-        ```
+The CMP demo is split into numbered stages under `demo/cmp`. Each stage reuses the state created by the previous one.
 
-* In one terminal change into the cmp directory and run a cmp client to sign a certificate:
+* Prepare the CMP workspace and start EJBCA if needed:
   ```
-  cd cmp
-  ./send_cr_cmp_message.sh
+  cd demo/cmp
+  ./0_prepare_cmp_demo.sh
   ```
-* In the terminal, run a cmp client to update key of a certificate (the key update pending on the previous __certificate signing__ step):
+  This script checks the local GTA provider setup and required tooling, verifies Docker and Docker Compose, and starts the EJBCA demo stack automatically if it is not already running.
+
+* Imprint an IDevID:
   ```
-  ./send_kur_cmp_message.sh
+  ./1_imprint_idevid.sh [ec|rsa|mldsa]
+  ```
+  Use `ec` for the EC variant, `rsa` for the RSA variant, or `mldsa` for the ML-DSA variant.
+  Note: The RSA CMP flow requires OpenSSL 3.2.0 or later. OpenSSL 3.0 and 3.1 label CMP message protection as PKCS#1 v1.5 even when the provider signs with RSA-PSS, causing signature verification to fail. Proof-of-possession is unaffected.
+
+
+* Bootstrap the LDevID-Generic from the IDevID:
+  ```
+  ./2_bootstrap_ldevid-generic.sh [ec|rsa|mldsa]
+  ```
+  This stage fetches the trust anchor from EJBCA and requests the LDevID-Generic certificate using the IDevID created in the previous step.
+
+* Enroll the application LDevID (LDevID-App):
+  ```
+  ./3_enroll_ldevid-app.sh [ec|rsa|mldsa]
+  ```
+  This stage requests the application certificate using the LDevID-Generic from the previous step.
+
+* Update the application LDevID certificate:
+  ```
+  ./4_update_ldevid-app.sh
+  ```
+  This stage sends a CMP key update request (KUR) and replaces the stored application certificate in the corresponding GTA API personality.
+
+* To stop the EJBCA demo stack run:
+  ```
+  docker compose -f ejbca/docker-compose.yml down
   ```
 
 ## Run integration tests

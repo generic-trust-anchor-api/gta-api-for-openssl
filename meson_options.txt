@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright 2025 Siemens
+# SPDX-FileCopyrightText: Copyright 2025-2026 Siemens
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -12,13 +12,11 @@ option('gta_state_directory', type: 'string', value: '.',
         description: 'Directory to store the state of the GTA API SW provider in case the environment variable GTA_STATE_DIRECTORY is not present')
 
 # Crypto algorithm configuration:
-option('ec_on', type: 'boolean', value: true,  
-        description: 'Enable Elliptic Curve support')
-option('dilithium_on', type: 'boolean', value: false, 
-        description: 'Enabel Dilithium (PQC) support')
+option('enable-post-quantum-crypto', type: 'boolean', value: false,
+        description: 'Enable PQC')
 
 # Log configurations:
-option('log_level', type: 'integer', value: 0,
+option('log_level', type: 'integer', value: 4,
         description: 'Log level (TRACE 0, DEBUG 1, INFO 2, WARN 3, ERROR 4)')
 option('log_b64_on', type: 'boolean', value: true,  
         description: 'Enable to show base64 decoded data in the log')
@@ -27,8 +25,5 @@ option('log_byte_array_on', type: 'boolean', value: false,
 option('log_for_cycle_on', type: 'boolean', value: false, 
         description: 'Enable to show state of the for cycle in the log')
 
-# Global configuration:
-option('build_type', type : 'combo', choices : ['debug', 'release' ], value : 'debug', 
-        description : 'Select build type with associated tool configuration')
 
 
