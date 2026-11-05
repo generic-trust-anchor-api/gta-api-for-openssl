@@ -62,18 +62,6 @@ integration_test_dir    = join_paths(meson.project_source_root(), 'tests/integra
 # Default value of gta_state_directory 
 gta_state_directory     = get_option('gta_state_directory')  
 
-# Specify global compiler options
-add_project_arguments(
-   c_compiler.get_supported_arguments(
-        '-Wextra',
-        '-Wformat-truncation=0',
-        '-Wpedantic',
-        '-Wno-unused-function',
-        '-Wno-unused-parameter',
-   ),
-   language: 'c'
-)
-
 # Specify project compile options
 # Specify the GTA_STATE_DIRECTORY directory macro as compiler option
 GTA_STATE_DIRECTORY_c_args = [
@@ -81,14 +69,9 @@ GTA_STATE_DIRECTORY_c_args = [
 ]
 add_project_arguments(GTA_STATE_DIRECTORY_c_args, language: 'c')
 
-# Activate elliptic curve support
-if get_option('ec_on')
-   add_project_arguments('-DEC_ON', language: 'c')
-endif
-
-# Activate dilithium (pqc) support
-if get_option('dilithium_on')
-   add_project_arguments('-DDILITHIUM_ON', language: 'c')
+# Activate PQC support
+if get_option('enable-post-quantum-crypto')
+   add_project_arguments('-DENABLE_PQC', language: 'c')
 endif
 
 # Logger configuration
@@ -110,58 +93,26 @@ if get_option('log_for_cycle_on')
    add_project_arguments('-DLOG_FOR_CYCLE_ON', language: 'c')
 endif
 
-# Select build type [release | debug]
-build_type = get_option('build_type')
-
-if build_type == 'release'
-   add_project_arguments(
-      c_compiler.get_supported_arguments(
-         '-O2',
-      ),
-      language: 'c'
-   )
-elif build_type == 'debug'
-   add_project_arguments(
-      c_compiler.get_supported_arguments(
-         '-O0',
-         '-g',
-      ),
-      language: 'c'
-   )
-endif
-
 # Dependencies
 deps = []
-# 1. OpenSSL 
-openssl_dep = dependency('openssl', required: true)
+# 1. OpenSSL
+openssl_version_req = '>=3.0.0'
+if get_option('enable-post-quantum-crypto')
+   openssl_version_req = '>=3.5.0'
+endif
+openssl_dep = dependency('openssl', version: openssl_version_req, required: true)
 deps += openssl_dep
 
-# Post quantum support is deactivated
-dilithium_on = get_option('dilithium_on')
-if dilithium_on
-   # 2. Open Quantum Safe low level library (liboqs) (build dependency | static library)
-   oqs_library_dep = dependency('liboqs', required: true)
-   deps += oqs_library_dep
-
-   # 3. Open Quantum Safe OpenSSL provider (oqs-provider) (runtime dependency | dyn library)
-   oqs_provider_dep = dependency('oqs-provider', required: true)
-   deps += oqs_provider_dep
-
-   # 4. Mathematical library
-   dep_math = dependency('libm', required: false) 
-   deps += dep_math
-endif
-
-# 5. GTA API
+# 2. GTA API
 gta_dep = dependency('libgta', required: true)
 deps += gta_dep
 
-# 6. GTA API SW Provider (normalized, the file needs to be stored manually in a subfolder)
+# 3. GTA API SW Provider (merged static lib, the file needs to be stored manually in a subfolder)
 gta_lib_dir = join_paths(meson.project_source_root(), 'deps', 'gta_api', 'lib_latest')
 gta_sw_provider_normalized_dep = c_compiler.find_library('gta_sw_provider_merged', dirs: [gta_lib_dir], required: true)
 deps += gta_sw_provider_normalized_dep
 
-# 7. Test dependency
+# 4. Test dependency
 bash_test_tools_project = subproject('bash_test_tools')
 bash_test_tools_path = join_paths(
    meson.project_source_root(),
@@ -171,8 +122,23 @@ bash_test_tools_path = join_paths(
 )
 
 # Define the sources
-code = 'import glob; [print(f) for f in glob.glob("provider/**/*.c", recursive=True)]'
-res = run_command(py, '-c', code, check: true)
+collect_provider_sources = '''import glob
+import sys
+
+enable_pqc = sys.argv[1] == 'true'
+
+for path in glob.glob('provider/**/*.c', recursive=True):
+   if not enable_pqc and path.startswith('provider/algorithms/mldsa/'):
+      continue
+   print(path)
+'''
+res = run_command(
+   py,
+   '-c',
+   collect_provider_sources,
+   get_option('enable-post-quantum-crypto').to_string(),
+   check: true,
+)
 
 if res.returncode() != 0
    error('Error occurred while collecting the source files: @0@'.format(res.stderr()))
@@ -206,38 +172,8 @@ test(
    env: {
       'BASH_TEST_TOOLS' : bash_test_tools_path,
       'WORK_DIR' : meson.project_build_root(),
+      'ENABLE_PQC' : get_option('enable-post-quantum-crypto').to_string(),
    },
    is_parallel : false,
    timeout : 0
 )
-
-# Meson popular commands:
-# 1) Create build folder and setup project (<build_dir> needs to replaced with a custom value):
-# meson setup <build_dir> -Dec_on=true -Ddilithium_on=false -Dlog_level=0 -Dlog_b64_on=true
-# Add -Dopenssl_modules_dir=/path/to/ossl-modules only to override auto-detection.
-
-# 2) Build project:
-# meson compile -C <build_dir>
-# or
-# ninja -C <build_dir>
-
-# 3) Install provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C <build_dir> install
-# or
-# sudo ninja -C <build_dir> install
-
-# 4) Uninstall provider (gta.so copy to OPENSSL_MODULES_DIR):
-# sudo meson compile -C <build_dir> uninstall
-# or
-# sudo ninja -C <build_dir> uninstall
-
-# 5) Run tests
-# meson test -C <build_dir>
-# or
-# ninja -C <build_dir> test
-
-# 6) Remove build directory:
-# rm -rf <build_dir>
-
-# Reconfigure project:
-# meson setup --wipe <build_dir>

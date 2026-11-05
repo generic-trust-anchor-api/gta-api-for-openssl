@@ -60,9 +60,14 @@ function teardown
 source "$DIR/test_tls_default.sh"
 # shellcheck source=/dev/null
 source "$DIR/test_tls_ec.sh"
-# Post quantum support is deactivated
 # shellcheck source=/dev/null
-# source "$DIR/test_tls_dilithium.sh"
+source "$DIR/test_tls_rsa.sh"
+
+if [[ "${ENABLE_PQC:-false}" == "true" ]]; then
+    # shellcheck source=/dev/null
+    source "$DIR/test_tls_mldsa.sh"
+fi
+
 # shellcheck source=/dev/null
 source "$DIR/test_cmp_ec.sh"
 
