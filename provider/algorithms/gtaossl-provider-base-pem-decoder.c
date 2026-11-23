@@ -155,12 +155,12 @@ static int gtaossl_provider_base_pem_decoder_decode(
 
     LOG_INFO("Decode pem object");
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("%s -> input (selection = %d)", __func__, selection);
     GTA_DER_DECODER_CTX * dctx = ctx;
 
     /* Currently unused */
     (void)pw_cb;
     (void)pw_cbarg;
+    (void)selection;
 
     BIO * bin = NULL;
     char * pem_name = NULL;
@@ -194,7 +194,7 @@ static int gtaossl_provider_base_pem_decoder_decode(
             params[2] = OSSL_PARAM_construct_end();
 
             res = object_cb(params, object_cbarg);
-        } else if (strcmp(pem_name, "GTA TRUSTED KEY") == 0) {
+        } else if (strcmp(pem_name, "GTA TRUSTED CERTIFICATE") == 0) {
 
             LOG_TRACE_ARG("%s -> submit the trusted key", __func__);
             LOG_TRACE_ARG("%s -> pem_name: %s", __func__, pem_name);

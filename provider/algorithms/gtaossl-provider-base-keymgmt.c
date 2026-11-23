@@ -62,7 +62,9 @@ void * gtaossl_provider_base_keymgmt_new(void * provctx)
 void * gtaossl_provider_base_keymgmt_load(const void * reference, size_t reference_sz)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("reference_sz: %zu", reference_sz);
+
+    /* Currently unused */
+    (void)reference_sz;
 
     GTA_PKEY * pkey = *(GTA_PKEY **)reference;
 
@@ -230,7 +232,9 @@ int base_get_public_key(const GTA_PKEY * pkey, EVP_PKEY ** key)
 int gtaossl_provider_base_keymgmt_match(const void * keydata1, const void * keydata2, int selection)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Selection = %d", selection);
+
+    /* Currently unused */
+    (void)selection;
 
     if ((NULL == keydata1) || (NULL == keydata2)) {
         LOG_ERROR("keydata1 and/or keydata2 is null");
@@ -301,17 +305,35 @@ int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[]
 
         EVP_PKEY_CTX * ctx = EVP_PKEY_CTX_new_from_name(NULL, name, NULL);
         EVP_PKEY * key = NULL;
+        OSSL_PARAM * mutable_params = NULL;
         int len = 0;
+
+        if (NULL == ctx) {
+            LOG_ERROR("EVP_PKEY_CTX_new_from_name failed");
+            return NOK;
+        }
 
         if (EVP_PKEY_fromdata_init(ctx) <= 0) {
             LOG_ERROR("EVP_PKEY_fromdata_init failed");
+            EVP_PKEY_CTX_free(ctx);
             return NOK;
         }
 
-        if (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, params) <= 0) {
-            LOG_ERROR("EVP_PKEY_fromdata failed");
+        mutable_params = OSSL_PARAM_dup(params);
+        if (NULL == mutable_params) {
+            LOG_ERROR("OSSL_PARAM duplication failed");
+            EVP_PKEY_CTX_free(ctx);
             return NOK;
         }
+
+        if (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, mutable_params) <= 0) {
+            LOG_ERROR("EVP_PKEY_fromdata failed");
+            OSSL_PARAM_free(mutable_params);
+            EVP_PKEY_CTX_free(ctx);
+            return NOK;
+        }
+        OSSL_PARAM_free(mutable_params);
+        EVP_PKEY_CTX_free(ctx);
 
         /* Convert to SubjectPublicKeyInfo */
         len = i2d_PUBKEY(key, (unsigned char **)&pkey->pub_key);
@@ -334,7 +356,7 @@ int base_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[]
  * The function reads requested params from keydata by converting the GTA_PKEY
  * to an EVP_PKEY and use OpenSSL functions.
  */
-int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[])
+int gtaossl_provider_base_keymgmt_get_params(void * keydata, const char * mandatory_digest, OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     OSSL_PARAM * p = NULL;
@@ -414,9 +436,65 @@ int gtaossl_provider_base_keymgmt_get_params(void * keydata, OSSL_PARAM params[]
         }
     }
 
+    p = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_MANDATORY_DIGEST);
+    if (p != NULL) {
+        LOG_TRACE_ARG("mandatory_digest: %s", mandatory_digest);
+        if (!OSSL_PARAM_set_utf8_string(p, mandatory_digest)) {
+            LOG_ERROR_ARG("%s -> error set parameter mandatory_digest", __func__);
+            goto error;
+        }
+    }
+
     OPENSSL_free(group_name);
     return OK;
 error:
     OPENSSL_free(group_name);
     return NOK;
+}
+
+int gtaossl_provider_base_keymgmt_export(void * keydata, int selection, OSSL_CALLBACK * param_cb, void * cbarg)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    LOG_TRACE_ARG("Selection = %d", selection);
+
+    int result = NOK;
+    const GTA_PKEY * pkey = (GTA_PKEY *)keydata;
+    OSSL_PARAM * params = NULL;
+    int export_selection = selection & ~OSSL_KEYMGMT_SELECT_PRIVATE_KEY;
+
+#if LOG_LEVEL == LOG_LEVEL_TRACE
+    LOG_TRACE_ARG("Function(%s) GTA pkey->string = %s", __func__, pkey->string);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->personality_name = %s", __func__, pkey->personality_name);
+    LOG_TRACE_ARG("Function(%s) GTA pkey->profile_name = %s", __func__, pkey->profile_name);
+
+    LOG_TRACE_ARG("Function(%s) GTA pkey->pub_key = %s", __func__, pkey->pub_key);
+    LOG_TRACE_ARG("Function(%s)  GTA pkey->pub_key_size = %zu", __func__, pkey->pub_key_size);
+#endif
+
+    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
+        LOG_TRACE("OSSL_KEYMGMT_SELECT_PRIVATE_KEY");
+        return NOK;
+    }
+
+    if (0 == export_selection) {
+        LOG_ERROR("No exportable public selection requested");
+        return NOK;
+    }
+
+    EVP_PKEY * key = NULL;
+    if (!base_get_public_key(pkey, &key)) {
+        return NOK;
+    }
+
+    if (0 >= EVP_PKEY_todata(key, export_selection, &params) || (NULL == params)) {
+        LOG_ERROR("EVP_PKEY_todata failed");
+        EVP_PKEY_free(key);
+        return NOK;
+    }
+
+    LOG_TRACE("Call param_cb");
+    result = param_cb(params, cbarg);
+    OSSL_PARAM_free(params);
+    EVP_PKEY_free(key);
+    return result;
 }

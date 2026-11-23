@@ -23,10 +23,11 @@
 #include <openssl/params.h>
 #include <openssl/types.h>
 
-static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_dilithium_keymgmt_gettable_params;
-static OSSL_FUNC_keymgmt_import_fn gtaossl_provider_dilithium_keymgmt_import;
-static OSSL_FUNC_keymgmt_export_fn gtaossl_provider_dilithium_keymgmt_export;
-static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_dilithium_keymgmt_eximport_types;
+static OSSL_FUNC_keymgmt_gettable_params_fn gtaossl_provider_mldsa_keymgmt_gettable_params;
+static OSSL_FUNC_keymgmt_get_params_fn gtaossl_provider_mldsa_keymgmt_get_params;
+static OSSL_FUNC_keymgmt_import_fn gtaossl_provider_mldsa_keymgmt_import;
+static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_mldsa_keymgmt_eximport_types;
+static OSSL_FUNC_keymgmt_query_operation_name_fn gtaossl_provider_mldsa_keymgmt_query_operation_name;
 
 /**
  * The function returns a descriptor of OSSL parameters.
@@ -37,7 +38,7 @@ static OSSL_FUNC_keymgmt_import_types_fn gtaossl_provider_dilithium_keymgmt_exim
  * More details can be found at the following URL:
  * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
  */
-static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_gettable_params(void * provctx)
+static const OSSL_PARAM * gtaossl_provider_mldsa_keymgmt_gettable_params(void * provctx)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
 
@@ -48,10 +49,49 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_gettable_params(voi
         OSSL_PARAM_int(OSSL_PKEY_PARAM_BITS, NULL),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_SECURITY_BITS, NULL),
         OSSL_PARAM_int(OSSL_PKEY_PARAM_MAX_SIZE, NULL),
+        OSSL_PARAM_utf8_string(OSSL_PKEY_PARAM_MANDATORY_DIGEST, NULL, 0),
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_PUB_KEY, NULL, 0),
         OSSL_PARAM_END};
 
     return gettable;
+}
+
+/**
+ * The function reads requested params from keydata.
+ *
+ * @param[in] keydata: pointer of a key structure
+ * @param[out] params: array of OSSL_PARAMs
+ * @return OK = 1
+ * @return NOK = 0
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ */
+static int gtaossl_provider_mldsa_keymgmt_get_params(void * keydata, OSSL_PARAM * params)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    return gtaossl_provider_base_keymgmt_get_params(keydata, "UNDEF", params);
+}
+
+/**
+ * This method should return a pointer to a string matching
+ * the requested operation, or NULL if the same name used
+ * to fetch the keymgmt applies.
+ *
+ * More details can be found at the following URL:
+ * - https://docs.openssl.org/master/man7/provider-keymgmt/#key-object-information-functions
+ *
+ * @param[in] operation_id: ID of operation
+ * @return algorithm string
+ */
+static const char * gtaossl_provider_mldsa_keymgmt_query_operation_name(int operation_id)
+{
+    LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
+    if (OSSL_OP_SIGNATURE == operation_id) {
+        LOG_INFO("Signature");
+        return "ML-DSA-65";
+    }
+    return NULL;
 }
 
 /**
@@ -68,10 +108,10 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_gettable_params(voi
  * @return NOK = 0
  *
  */
-static int gtaossl_provider_dilithium_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[])
+static int gtaossl_provider_mldsa_keymgmt_import(void * keydata, int selection, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    return (base_keymgmt_import(keydata, selection, params, "todo"));
+    return (base_keymgmt_import(keydata, selection, params, PREQS_MLDSA));
 }
 
 /**
@@ -84,34 +124,35 @@ static int gtaossl_provider_dilithium_keymgmt_import(void * keydata, int selecti
  * @param[in] selection: type of selection
  * @return array of OSSL parameters
  */
-static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_eximport_types(int selection)
+static const OSSL_PARAM * gtaossl_provider_mldsa_keymgmt_eximport_types(int selection)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    static const OSSL_PARAM dilithium_public_key_types[] = {
+    static const OSSL_PARAM mldsa_public_key_types[] = {
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_PUB_KEY, NULL, 0), OSSL_PARAM_END};
 
     if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
-        LOG_TRACE("return dilithium_public_key_types");
-        return dilithium_public_key_types;
+        LOG_TRACE("return mldsa_public_key_types");
+        return mldsa_public_key_types;
     } else {
         LOG_TRACE_ARG("%s return null", __func__);
         return NULL;
     }
 }
 
-const OSSL_DISPATCH dilithium_keymgmt_functions[] = {
+const OSSL_DISPATCH mldsa_keymgmt_functions[] = {
 
     {OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))gtaossl_provider_base_keymgmt_new},
     {OSSL_FUNC_KEYMGMT_LOAD, (void (*)(void))gtaossl_provider_base_keymgmt_load},
     {OSSL_FUNC_KEYMGMT_FREE, (void (*)(void))gtaossl_provider_base_keymgmt_free},
-    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_get_params},
-    {OSSL_FUNC_KEYMGMT_GETTABLE_PARAMS, (void (*)(void))gtaossl_provider_dilithium_keymgmt_gettable_params},
+    {OSSL_FUNC_KEYMGMT_GET_PARAMS, (void (*)(void))gtaossl_provider_mldsa_keymgmt_get_params},
+    {OSSL_FUNC_KEYMGMT_GETTABLE_PARAMS, (void (*)(void))gtaossl_provider_mldsa_keymgmt_gettable_params},
     {OSSL_FUNC_KEYMGMT_SET_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_set_params},
     {OSSL_FUNC_KEYMGMT_SETTABLE_PARAMS, (void (*)(void))gtaossl_provider_base_keymgmt_settable_params},
+    {OSSL_FUNC_KEYMGMT_QUERY_OPERATION_NAME, (void (*)(void))gtaossl_provider_mldsa_keymgmt_query_operation_name},
     {OSSL_FUNC_KEYMGMT_HAS, (void (*)(void))gtaossl_provider_base_keymgmt_has},
     {OSSL_FUNC_KEYMGMT_MATCH, (void (*)(void))gtaossl_provider_base_keymgmt_match},
-    {OSSL_FUNC_KEYMGMT_IMPORT, (void (*)(void))gtaossl_provider_dilithium_keymgmt_import},
-    {OSSL_FUNC_KEYMGMT_IMPORT_TYPES, (void (*)(void))gtaossl_provider_dilithium_keymgmt_eximport_types},
-    {OSSL_FUNC_KEYMGMT_EXPORT, NULL},
-    {OSSL_FUNC_KEYMGMT_EXPORT_TYPES, (void (*)(void))gtaossl_provider_dilithium_keymgmt_eximport_types},
+    {OSSL_FUNC_KEYMGMT_IMPORT, (void (*)(void))gtaossl_provider_mldsa_keymgmt_import},
+    {OSSL_FUNC_KEYMGMT_IMPORT_TYPES, (void (*)(void))gtaossl_provider_mldsa_keymgmt_eximport_types},
+    {OSSL_FUNC_KEYMGMT_EXPORT, (void (*)(void))gtaossl_provider_base_keymgmt_export},
+    {OSSL_FUNC_KEYMGMT_EXPORT_TYPES, (void (*)(void))gtaossl_provider_mldsa_keymgmt_eximport_types},
     {0, NULL}};

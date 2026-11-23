@@ -28,7 +28,9 @@
 void * gtaossl_provider_base_signature_newctx(void * provctx, const char * propq)
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
-    LOG_TRACE_ARG("Input of %s : %s", __func__, propq);
+
+    /* Currently unused */
+    (void)propq;
 
     GTA_PROVIDER_CTX * cprov = provctx;
     GTA_SIGNATURE_CTX * sctx = OPENSSL_zalloc(sizeof(GTA_SIGNATURE_CTX));
@@ -68,14 +70,17 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
 
     const OSSL_PARAM * p = NULL;
 
-    /* Check mdname if there */
+    /*
+     * Check mdname if there
+     * This should not be needed, as it is enforced by OSSL_PKEY_PARAM_MANDATORY_DIGEST
+     */
     if ((NULL != mdname) && (SUPPORTED_DIGEST != EVP_MD_get_type(EVP_get_digestbyname(mdname)))) {
         LOG_ERROR_ARG("Digest %s unsupported", mdname);
         return NOK;
     }
 
     if (NULL == params) {
-        LOG_ERROR("params is NULL -> nothing more to check");
+        LOG_TRACE("params is NULL -> nothing more to check");
         return OK;
     }
 
@@ -102,6 +107,9 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
         }
     }
 
+    /*
+     * This should not be needed, as it is enforced by OSSL_PKEY_PARAM_MANDATORY_DIGEST
+     */
     LOG_DEBUG("Locate OSSL_SIGNATURE_PARAM_DIGEST");
     p = OSSL_PARAM_locate_const(params, OSSL_SIGNATURE_PARAM_DIGEST);
     if ((p != NULL) && ((p->data_type != OSSL_PARAM_UTF8_STRING) ||
@@ -121,13 +129,10 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
 }
 
 /**
- * Initialization of the signing context.
+ * Common initialization helper used by both the digest-specific and non-digest
+ * signature init operations.
  */
-int gtaossl_provider_base_signature_digest_init(
-    void * ctx,
-    const char * mdname,
-    void * provkey,
-    const OSSL_PARAM params[])
+static int base_signature_init_impl(void * ctx, const char * mdname, void * provkey, const OSSL_PARAM params[])
 {
     LOG_DEBUG_ARG("CALL_FUNC(%s)", __func__);
     LOG_TRACE_ARG("Input parameter mdname: %s", mdname);
@@ -171,7 +176,24 @@ int gtaossl_provider_base_signature_digest_init(
     return OK;
 }
 
-int gtaossl_provider_base_signature_digest_sign(
+int gtaossl_provider_base_signature_sign_init(void * ctx, void * provkey, const OSSL_PARAM params[])
+{
+    return base_signature_init_impl(ctx, NULL, provkey, params);
+}
+
+/**
+ * Initialization of the signing context.
+ */
+int gtaossl_provider_base_signature_digest_init(
+    void * ctx,
+    const char * mdname,
+    void * provkey,
+    const OSSL_PARAM params[])
+{
+    return base_signature_init_impl(ctx, mdname, provkey, params);
+}
+
+static int base_signature_sign_impl(
     void * ctx,
     unsigned char * sig,
     size_t * siglen,
@@ -228,6 +250,28 @@ int gtaossl_provider_base_signature_digest_sign(
     LOG_TRACE_ARG("Input of %s : datalen= %zu", __func__, datalen);
 
     return OK;
+}
+
+int gtaossl_provider_base_signature_sign(
+    void * ctx,
+    unsigned char * sig,
+    size_t * siglen,
+    size_t sigsize,
+    const unsigned char * data,
+    size_t datalen)
+{
+    return base_signature_sign_impl(ctx, sig, siglen, sigsize, data, datalen);
+}
+
+int gtaossl_provider_base_signature_digest_sign(
+    void * ctx,
+    unsigned char * sig,
+    size_t * siglen,
+    size_t sigsize,
+    const unsigned char * data,
+    size_t datalen)
+{
+    return base_signature_sign_impl(ctx, sig, siglen, sigsize, data, datalen);
 }
 
 /**

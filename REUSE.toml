@@ -11,7 +11,7 @@ SPDX-License-Identifier = "Apache-2.0"
 precedence = "override"
 
 [[annotations]]
-path = "demo/cmp/cloud-pki/*"
+path = "demo/cmp/ejbca/ejbcadb.sql"
 SPDX-FileCopyrightText = "Copyright 2026 Siemens"
 SPDX-License-Identifier = "Apache-2.0"
 precedence = "override"

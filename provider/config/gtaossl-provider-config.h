@@ -21,13 +21,11 @@ extern "C" {
 
 #define PREQS_EC "EC"
 #define PREQS_RSA "RSA"
+#define PREQS_MLDSA "ML-DSA-65"
 
 #define GTA_DATA_STRUCTURE_PARAM "GTA"
 
 #define DER_DATA_STRUCTURE_PARAM "DER"
-
-#define OQS_DILITHIUM_2 "dilithium2"
-#define OQS_DILITHIUM_2_OID "1.3.6.1.4.1.2.267.7.4.4"
 
 /**
  * Some defines which depend on the profile
@@ -41,7 +39,7 @@ extern "C" {
 #define GTA_READ_BUFFER 2048
 #define GTA_READ_BUFFER_FOR_CA_CERT 4096
 #define MAXLEN_ATTRIBUTE_NAME 1000
-#define SIZE_OF_GTA_O_BUFFER 1000
+#define SIZE_OF_GTA_O_BUFFER 10000
 
 #define GTA_KEY_TYPE_ATTRIBUTE "com.github.generic-trust-anchor-api.keytype.openssl"
 #define GTA_TRUSTED_CERTIFICATE_TYPE "ch.iec.30168.trustlist.certificate.trusted.x509v3"
