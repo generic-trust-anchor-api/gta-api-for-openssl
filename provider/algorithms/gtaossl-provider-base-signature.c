@@ -112,7 +112,7 @@ static int base_signature_check_ctx_params(const OSSL_PARAM params[], const char
 
     LOG_DEBUG("Locate OSSL_SIGNATURE_PARAM_PSS_SALTLEN");
     p = OSSL_PARAM_locate_const(params, OSSL_SIGNATURE_PARAM_PSS_SALTLEN);
-    if ((p != NULL) && ((p->data_type != OSSL_PARAM_UTF8_STRING) && (0 != strcmp(SUPPORTED_PSS_SALTLEN, p->data)))) {
+    if ((p != NULL) && ((p->data_type == OSSL_PARAM_UTF8_STRING) && (0 != strcmp(SUPPORTED_PSS_SALTLEN, p->data)))) {
         LOG_ERROR_ARG("OSSL_SIGNATURE_PARAM_PSS_SALTLEN %s not supported", (char *)p->data);
         return NOK;
     }
