@@ -90,7 +90,7 @@ static const OSSL_PARAM * gtaossl_provider_dilithium_keymgmt_eximport_types(int 
     static const OSSL_PARAM dilithium_public_key_types[] = {
         OSSL_PARAM_octet_string(OSSL_PKEY_PARAM_PUB_KEY, NULL, 0), OSSL_PARAM_END};
 
-    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) == 0) {
+    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
         LOG_TRACE("return dilithium_public_key_types");
         return dilithium_public_key_types;
     } else {

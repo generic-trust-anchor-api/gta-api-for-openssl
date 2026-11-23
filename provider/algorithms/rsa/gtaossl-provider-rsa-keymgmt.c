@@ -95,7 +95,7 @@ static const OSSL_PARAM * gtaossl_provider_rsa_keymgmt_eximport_types(int select
     static const OSSL_PARAM rsa_public_key_types[] = {
         OSSL_PARAM_BN(OSSL_PKEY_PARAM_RSA_N, NULL, 0), OSSL_PARAM_BN(OSSL_PKEY_PARAM_RSA_E, NULL, 0), OSSL_PARAM_END};
 
-    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) == 0) {
+    if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
         LOG_TRACE("return rsa_public_key_types");
         return rsa_public_key_types;
     } else {
