@@ -86,6 +86,11 @@ if get_option('ec_on')
    add_project_arguments('-DEC_ON', language: 'c')
 endif
 
+# Activate RSA support
+if get_option('rsa_on')
+   add_project_arguments('-DRSA_ON', language: 'c')
+endif
+
 # Activate dilithium (pqc) support
 if get_option('dilithium_on')
    add_project_arguments('-DDILITHIUM_ON', language: 'c')
