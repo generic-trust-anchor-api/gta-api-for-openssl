@@ -24,7 +24,7 @@ function test_tls_default
     assert_output_contains "Tear down provider instance"
     assert_output_contains "Verify return code: 0 (ok)"
     # assert_output_contains "read R BLOCK"
-    assert_output_contains "gtaossl_provider_base_signature_digest_sign : b64_enc(data)="
+    assert_output_contains "base_signature_sign_impl : b64_enc(data)="
     assert_error_contains "depth=1 CN=Demo CA"
     assert_error_contains "verify return:1"
     assert_error_contains "depth=0"
